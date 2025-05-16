@@ -3,13 +3,13 @@ import React from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Download } from 'lucide-react';
+import { Copy, Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { estimatePromptTokens } from '@/services/prompt-service';
 import ModelCompatibility from './ModelCompatibility';
 
 const PromptPreview: React.FC = () => {
-  const { sections } = usePromptStore();
+  const { sections, setPreviewMode } = usePromptStore();
   const { toast } = useToast();
   
   // Sort sections by order
@@ -54,11 +54,26 @@ const PromptPreview: React.FC = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  const handleBackToEditor = () => {
+    setPreviewMode(false);
+  };
   
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Prompt Preview</h1>
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleBackToEditor}
+            className="mr-4"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Editor
+          </Button>
+          <h1 className="text-2xl font-bold">Prompt Preview</h1>
+        </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={handleCopyToClipboard}>
             <Copy size={16} className="mr-2" />

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText, estimatePromptTokens } from '@/services/prompt-service';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import ModelCompatibility from '@/components/ModelCompatibility';
 const PreviewPage: React.FC = () => {
   const { sections, setPreviewMode } = usePromptStore();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const promptText = generatePromptText(sections);
   const tokenEstimate = estimatePromptTokens(promptText);
@@ -32,6 +34,11 @@ const PreviewPage: React.FC = () => {
       description: "Your prompt has been downloaded as a Markdown file.",
     });
   };
+
+  const handleBackToEditor = () => {
+    setPreviewMode(false);
+    navigate('/');
+  };
   
   return (
     <div className="container py-8">
@@ -40,7 +47,7 @@ const PreviewPage: React.FC = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setPreviewMode(false)}
+            onClick={handleBackToEditor}
             className="mr-4"
           >
             <ArrowLeft size={16} className="mr-2" />
