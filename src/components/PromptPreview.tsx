@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,13 @@ import { Copy, Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { estimatePromptTokens } from '@/services/prompt-service';
 import ModelCompatibility from './ModelCompatibility';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DialogTrigger } from '@radix-ui/react-dialog';
 
 const PromptPreview: React.FC = () => {
   const { sections, setPreviewMode } = usePromptStore();
   const { toast } = useToast();
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   
   // Sort sections by order
   const sortedSections = [...sections].sort((a, b) => a.order - b.order);
@@ -43,16 +46,24 @@ const PromptPreview: React.FC = () => {
       });
   };
   
-  const handleDownload = () => {
-    const blob = new Blob([promptText], { type: 'text/markdown' });
+  const handleDownload = (fileType: 'md' | 'txt') => {
+    const extension = fileType;
+    const mimeType = fileType === 'md' ? 'text/markdown' : 'text/plain';
+    const blob = new Blob([promptText], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'prompt.md';
+    link.download = `prompt.${extension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    setDownloadDialogOpen(false);
+    
+    toast({
+      title: "Downloaded successfully",
+      description: `Your prompt has been downloaded as a ${fileType === 'md' ? 'Markdown' : 'Text'} file.`,
+    });
   };
 
   const handleBackToEditor = () => {
@@ -79,10 +90,30 @@ const PromptPreview: React.FC = () => {
             <Copy size={16} className="mr-2" />
             Copy Prompt
           </Button>
-          <Button variant="secondary" onClick={handleDownload}>
-            <Download size={16} className="mr-2" />
-            Download
-          </Button>
+          
+          <Dialog open={downloadDialogOpen} onOpenChange={setDownloadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="secondary">
+                <Download size={16} className="mr-2" />
+                Download
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Choose File Format</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <Button onClick={() => handleDownload('md')} variant="outline" className="flex flex-col items-center p-6">
+                  <span className="font-medium mb-2">Markdown</span>
+                  <span className="text-sm text-muted-foreground">.md</span>
+                </Button>
+                <Button onClick={() => handleDownload('txt')} variant="outline" className="flex flex-col items-center p-6">
+                  <span className="font-medium mb-2">Plain Text</span>
+                  <span className="text-sm text-muted-foreground">.txt</span>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       

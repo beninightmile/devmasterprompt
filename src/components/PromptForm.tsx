@@ -98,6 +98,11 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     }
   };
   
+  const handleOpenSaveDialog = () => {
+    // Transfer the template name from the main form to the save dialog
+    setSaveTemplateDialogOpen(true);
+  };
+  
   const handleSaveTemplate = () => {
     if (!templateName.trim()) {
       toast({
@@ -127,9 +132,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
       
       // Reset form
       setSaveTemplateDialogOpen(false);
-      setTemplateName('');
-      setTemplateDescription('');
-      setTemplateTags('');
     } catch (error) {
       toast({
         title: "Failed to save template",
@@ -165,7 +167,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
             
             <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center space-x-2">
+                <Button variant="outline" className="flex items-center space-x-2" onClick={handleOpenSaveDialog}>
                   <Save size={16} />
                   <span>Save Template</span>
                 </Button>

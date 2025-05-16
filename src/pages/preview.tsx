@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText, estimatePromptTokens } from '@/services/prompt-service';
@@ -9,29 +9,34 @@ import { Button } from '@/components/ui/button';
 import { Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import ModelCompatibility from '@/components/ModelCompatibility';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const PreviewPage: React.FC = () => {
   const { sections, setPreviewMode } = usePromptStore();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   
   const promptText = generatePromptText(sections);
   const tokenEstimate = estimatePromptTokens(promptText);
   
-  const handleDownload = () => {
-    const blob = new Blob([promptText], { type: 'text/markdown' });
+  const handleDownload = (fileType: 'md' | 'txt') => {
+    const extension = fileType;
+    const mimeType = fileType === 'md' ? 'text/markdown' : 'text/plain';
+    const blob = new Blob([promptText], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'prompt.md';
+    link.download = `prompt.${extension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    setDownloadDialogOpen(false);
     
     toast({
       title: "Downloaded successfully",
-      description: "Your prompt has been downloaded as a Markdown file.",
+      description: `Your prompt has been downloaded as a ${fileType === 'md' ? 'Markdown' : 'Text'} file.`,
     });
   };
 
@@ -58,10 +63,28 @@ const PreviewPage: React.FC = () => {
         
         <div className="flex items-center space-x-2">
           <CopyButton text={promptText} />
-          <Button variant="secondary" onClick={handleDownload}>
-            <Download size={16} className="mr-2" />
-            Download
-          </Button>
+          
+          <Dialog open={downloadDialogOpen} onOpenChange={setDownloadDialogOpen}>
+            <Button variant="secondary" onClick={() => setDownloadDialogOpen(true)}>
+              <Download size={16} className="mr-2" />
+              Download
+            </Button>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Choose File Format</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <Button onClick={() => handleDownload('md')} variant="outline" className="flex flex-col items-center p-6">
+                  <span className="font-medium mb-2">Markdown</span>
+                  <span className="text-sm text-muted-foreground">.md</span>
+                </Button>
+                <Button onClick={() => handleDownload('txt')} variant="outline" className="flex flex-col items-center p-6">
+                  <span className="font-medium mb-2">Plain Text</span>
+                  <span className="text-sm text-muted-foreground">.txt</span>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
