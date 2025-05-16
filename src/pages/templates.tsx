@@ -271,11 +271,18 @@ const TemplatesPage: React.FC = () => {
                     Updated: {format(new Date(template.updatedAt), 'PP')}
                   </div>
                 </div>
-                <p className="text-sm">
-                  {template.sections.length} sections
-                  {' ('}
-                  {getNonEmptySectionsCount(template.sections)} with content{')'}
-                </p>
+                <div className="text-sm space-y-1">
+                  <p>
+                    {template.sections.length} sections
+                    {' ('}
+                    {getNonEmptySectionsCount(template.sections)} with content{')'}
+                  </p>
+                  {template.totalTokens && (
+                    <p className="font-medium">
+                      {template.totalTokens} tokens
+                    </p>
+                  )}
+                </div>
                 {template.tags && template.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
                     {template.tags.map(tag => (
@@ -283,6 +290,11 @@ const TemplatesPage: React.FC = () => {
                         {tag}
                       </Badge>
                     ))}
+                  </div>
+                )}
+                {template.totalTokens && template.totalTokens > 0 && (
+                  <div className="mt-4">
+                    <ModelCompatibility tokenCount={template.totalTokens} />
                   </div>
                 )}
               </CardContent>

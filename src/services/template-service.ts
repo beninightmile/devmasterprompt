@@ -2,6 +2,7 @@
 import type { PromptTemplate, PromptSection } from '@/types/prompt';
 import { useTemplateStore } from '@/store/templateStore';
 import { usePromptStore } from '@/store/promptStore';
+import { estimatePromptTokens, generatePromptText } from './prompt-service';
 
 export function saveCurrentPromptAsTemplate(name: string, description?: string, tags?: string[]): string {
   const { sections } = usePromptStore.getState();
@@ -12,11 +13,16 @@ export function saveCurrentPromptAsTemplate(name: string, description?: string, 
     section.isRequired || section.content.trim() !== ''
   );
   
+  // Calculate total tokens for the template
+  const promptText = generatePromptText(nonEmptySections);
+  const totalTokens = estimatePromptTokens(promptText);
+  
   return saveTemplate({
     name,
     description,
     sections: nonEmptySections,
     tags,
+    totalTokens,
   });
 }
 

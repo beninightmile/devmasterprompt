@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { GripVertical, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
+import TokenCounter from './TokenCounter';
 
 interface PromptSectionProps {
   id: string;
@@ -75,12 +76,15 @@ const PromptSection: React.FC<PromptSectionProps> = ({
               className="font-medium"
             />
           ) : (
-            <h3
-              className="font-medium cursor-pointer"
-              onClick={() => setIsEditing(true)}
-            >
-              {name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className="font-medium cursor-pointer"
+                onClick={() => setIsEditing(true)}
+              >
+                {name}
+              </h3>
+              <TokenCounter text={content} />
+            </div>
           )}
         </div>
         

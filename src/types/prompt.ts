@@ -15,6 +15,7 @@ export interface PromptTemplate {
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
+  totalTokens?: number;
 }
 
 export interface InspirationItem {

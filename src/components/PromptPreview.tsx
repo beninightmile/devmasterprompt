@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Copy, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { estimatePromptTokens } from '@/services/prompt-service';
+import ModelCompatibility from './ModelCompatibility';
 
 const PromptPreview: React.FC = () => {
   const { sections } = usePromptStore();
@@ -20,6 +22,9 @@ const PromptPreview: React.FC = () => {
       return `## ${section.name}\n${section.content}\n`;
     })
     .join('\n');
+  
+  // Calculate total tokens
+  const totalTokens = estimatePromptTokens(promptText);
     
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(promptText)
@@ -66,7 +71,18 @@ const PromptPreview: React.FC = () => {
         </div>
       </div>
       
-      <Card className="p-6 whitespace-pre-wrap font-mono bg-card border">
+      <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground">
+        <div>
+          Sections: {sections.filter(s => s.content.trim() !== '').length}/{sections.length}
+        </div>
+        <div>
+          Total tokens: <span className="font-medium">{totalTokens}</span>
+        </div>
+      </div>
+      
+      <ModelCompatibility tokenCount={totalTokens} />
+      
+      <Card className="p-6 whitespace-pre-wrap font-mono bg-card border mt-4">
         {promptText || (
           <div className="text-muted-foreground italic">
             Your prompt will appear here as you add content to each section.

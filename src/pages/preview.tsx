@@ -7,6 +7,7 @@ import CopyButton from '@/components/CopyButton';
 import { Button } from '@/components/ui/button';
 import { Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import ModelCompatibility from '@/components/ModelCompatibility';
 
 const PreviewPage: React.FC = () => {
   const { sections, setPreviewMode } = usePromptStore();
@@ -62,11 +63,13 @@ const PreviewPage: React.FC = () => {
           Sections: {sections.filter(s => s.content.trim() !== '').length}/{sections.length}
         </div>
         <div>
-          Estimated tokens: ~{tokenEstimate}
+          Total tokens: <span className="font-medium">{tokenEstimate}</span>
         </div>
       </div>
       
-      <Card className="overflow-hidden">
+      <ModelCompatibility tokenCount={tokenEstimate} />
+      
+      <Card className="overflow-hidden mt-4">
         <CardContent className="p-0">
           <div className="bg-muted p-4 border-b font-mono text-sm overflow-x-auto whitespace-pre-wrap">
             {promptText || (
