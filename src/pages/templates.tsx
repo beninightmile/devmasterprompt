@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTemplateStore } from '@/store/templateStore';
 import { usePromptStore } from '@/store/promptStore';
@@ -41,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ModelCompatibility from '@/components/ModelCompatibility';
 
 const TemplatesPage: React.FC = () => {
   const { templates, deleteTemplate } = useTemplateStore();
