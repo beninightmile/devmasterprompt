@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTemplateStore } from '@/store/templateStore';
 import { usePromptStore } from '@/store/promptStore';
 import { loadTemplateIntoPrompt, saveCurrentPromptAsTemplate, getPopularTags } from '@/services/template-service';
@@ -12,7 +13,9 @@ import NoTemplatesFound from '@/components/templates/NoTemplatesFound';
 
 const TemplatesPage: React.FC = () => {
   const { templates, deleteTemplate } = useTemplateStore();
+  const { setPreviewMode } = usePromptStore();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -51,11 +54,25 @@ const TemplatesPage: React.FC = () => {
   
   const handleLoadTemplate = (templateId: string) => {
     try {
-      loadTemplateIntoPrompt(templateId);
-      toast({
-        title: "Template loaded",
-        description: "The template has been loaded into the prompt builder.",
-      });
+      const success = loadTemplateIntoPrompt(templateId);
+      if (success) {
+        // Set preview mode to false to ensure user sees the editor
+        setPreviewMode(false);
+        
+        // Navigate back to the builder page
+        navigate('/');
+        
+        toast({
+          title: "Template loaded",
+          description: "The template has been loaded into the prompt builder.",
+        });
+      } else {
+        toast({
+          title: "Failed to load template",
+          description: "Template not found.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Failed to load template",
