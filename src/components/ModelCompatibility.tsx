@@ -15,8 +15,8 @@ const ModelCompatibility: React.FC<ModelCompatibilityProps> = ({
   return (
     <div className="flex flex-wrap gap-2 mt-1">
       {compatibility.map(model => (
-        <Badge key={model.name} variant={model.compatible ? "default" : "outline"} className={model.compatible ? "" : "text-muted-foreground"}>
-          {model.name}
+        <Badge key={model.model} variant={model.isCompatible ? "default" : "outline"} className={model.isCompatible ? "" : "text-muted-foreground"}>
+          {model.model}
         </Badge>
       ))}
     </div>
