@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { usePromptStore } from '@/store/promptStore';
+
 interface SaveTemplateDialogProps {
   onSave: (name: string, description: string, tags: string[]) => void;
 }
+
 const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
   onSave
 }) => {
@@ -17,21 +20,16 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const {
-    toast
-  } = useToast();
-  const promptStore = usePromptStore();
+  const { toast } = useToast();
+  const { templateName } = usePromptStore();
 
   // Get the current template name if available
   useEffect(() => {
-    if (open) {
-      // Find the template name from the template input field in PromptForm
-      const templateInput = document.querySelector('input[placeholder="Template Name"]') as HTMLInputElement;
-      if (templateInput && templateInput.value) {
-        setName(templateInput.value);
-      }
+    if (open && templateName) {
+      setName(templateName);
     }
-  }, [open]);
+  }, [open, templateName]);
+
   const handleSave = () => {
     if (!name.trim()) {
       toast({
@@ -46,17 +44,20 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
     setOpen(false);
     resetForm();
   };
+
   const resetForm = () => {
     setName('');
     setDescription('');
     setTags('');
   };
-  return <Dialog open={open} onOpenChange={newOpen => {
-    setOpen(newOpen);
-    if (!newOpen) resetForm();
-  }}>
+
+  return (
+    <Dialog open={open} onOpenChange={newOpen => {
+      setOpen(newOpen);
+      if (!newOpen) resetForm();
+    }}>
       <DialogTrigger asChild>
-        
+        <Button>Save Current Prompt</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -80,6 +81,8 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
           <Button type="submit" onClick={handleSave}>Save Template</Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };
+
 export default SaveTemplateDialog;

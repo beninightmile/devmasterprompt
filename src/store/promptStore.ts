@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { defaultPromptSections } from '../core/registry';
@@ -9,6 +8,7 @@ interface PromptState {
   activeSectionId: string | null;
   inspirationItems: InspirationItem[];
   isPreviewMode: boolean;
+  templateName: string;
   
   // Actions
   addSection: (section: Omit<PromptSection, 'order'>) => void;
@@ -19,6 +19,7 @@ interface PromptState {
   addInspirationItem: (item: Omit<InspirationItem, 'id'>) => void;
   removeInspirationItem: (id: string) => void;
   setPreviewMode: (isPreview: boolean) => void;
+  setTemplateName: (name: string) => void;
   resetToDefault: () => void;
   clearAll: () => void;
 }
@@ -39,6 +40,7 @@ export const usePromptStore = create<PromptState>()(
       activeSectionId: initialSections.length > 0 ? initialSections[0].id : null,
       inspirationItems: [],
       isPreviewMode: false,
+      templateName: '',
       
       addSection: (section) => set(state => {
         const maxOrder = Math.max(0, ...state.sections.map(s => s.order));
@@ -82,11 +84,17 @@ export const usePromptStore = create<PromptState>()(
       
       setPreviewMode: (isPreview) => set({ isPreviewMode: isPreview }),
       
-      resetToDefault: () => set({ sections: initialSections }),
+      setTemplateName: (name) => set({ templateName: name }),
+      
+      resetToDefault: () => set({ 
+        sections: initialSections,
+        templateName: ''
+      }),
       
       clearAll: () => set({ 
         sections: initialSections.filter(section => section.isRequired),
         inspirationItems: [],
+        templateName: ''
       }),
     }),
     {

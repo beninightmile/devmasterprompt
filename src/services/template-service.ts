@@ -28,13 +28,16 @@ export function saveCurrentPromptAsTemplate(name: string, description?: string, 
 
 export function loadTemplateIntoPrompt(templateId: string): boolean {
   const { templates } = useTemplateStore.getState();
-  const { updateSection, addSection, removeSection, sections } = usePromptStore.getState();
+  const { updateSection, addSection, removeSection, sections, setTemplateName } = usePromptStore.getState();
   
   const template = templates.find(t => t.id === templateId);
   
   if (!template) {
     return false;
   }
+  
+  // Set the template name in the prompt store
+  setTemplateName(template.name);
   
   // Handle existing sections
   const existingIds = sections.map(s => s.id);

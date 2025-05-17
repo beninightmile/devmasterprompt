@@ -6,10 +6,9 @@ import { PlusCircle, Save, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import TokenCounter from '@/components/TokenCounter';
+import { usePromptStore } from '@/store/promptStore';
 
 interface PromptFormHeaderProps {
-  templateName: string;
-  onTemplateNameChange: (name: string) => void;
   isPreviewMode: boolean;
   onPreviewToggle: (value: boolean) => void;
   promptText: string;
@@ -18,21 +17,21 @@ interface PromptFormHeaderProps {
 }
 
 const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
-  templateName,
-  onTemplateNameChange,
   isPreviewMode,
   onPreviewToggle,
   promptText,
   onOpenSaveDialog,
   onOpenNewSectionDialog,
 }) => {
+  const { templateName, setTemplateName } = usePromptStore();
+
   return (
     <div className="flex flex-col gap-4 mb-6">
       <div className="flex items-center">
         <Input
           placeholder="Template Name"
           value={templateName}
-          onChange={(e) => onTemplateNameChange(e.target.value)}
+          onChange={(e) => setTemplateName(e.target.value)}
           className="mr-2 max-w-md"
         />
         <div className="text-sm text-muted-foreground flex items-center ml-2">

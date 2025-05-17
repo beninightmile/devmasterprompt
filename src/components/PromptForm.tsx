@@ -17,13 +17,13 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     isPreviewMode,
     setPreviewMode,
     addSection,
-    reorderSections
+    reorderSections,
+    templateName
   } = usePromptStore();
   
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
-  const [templateName, setTemplateName] = useState('');
 
   // Generate the prompt text for token counting
   const promptText = generatePromptText(sections);
@@ -88,8 +88,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     <div className="w-full max-w-4xl mx-auto">
       {/* Header with template name, preview toggle, and action buttons */}
       <PromptFormHeader 
-        templateName={templateName}
-        onTemplateNameChange={setTemplateName}
         isPreviewMode={isPreviewMode}
         onPreviewToggle={handleTogglePreview}
         promptText={promptText}
