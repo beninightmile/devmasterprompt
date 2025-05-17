@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { defaultPromptSections } from '../core/registry';
@@ -9,6 +10,10 @@ interface PromptState {
   inspirationItems: InspirationItem[];
   isPreviewMode: boolean;
   templateName: string;
+  currentTemplateId: string | null;
+  autoSaveEnabled: boolean;
+  autoSaveInterval: number; // in minutes
+  lastSaveTime: Date | null;
   
   // Actions
   addSection: (section: Omit<PromptSection, 'order'>) => void;
@@ -20,6 +25,10 @@ interface PromptState {
   removeInspirationItem: (id: string) => void;
   setPreviewMode: (isPreview: boolean) => void;
   setTemplateName: (name: string) => void;
+  setCurrentTemplateId: (id: string | null) => void;
+  setAutoSaveEnabled: (enabled: boolean) => void;
+  setAutoSaveInterval: (minutes: number) => void;
+  updateLastSaveTime: () => void;
   resetToDefault: () => void;
   clearAll: () => void;
 }
@@ -41,6 +50,10 @@ export const usePromptStore = create<PromptState>()(
       inspirationItems: [],
       isPreviewMode: false,
       templateName: '',
+      currentTemplateId: null,
+      autoSaveEnabled: false,
+      autoSaveInterval: 5, // Default to 5 minutes
+      lastSaveTime: null,
       
       addSection: (section) => set(state => {
         const maxOrder = Math.max(0, ...state.sections.map(s => s.order));
@@ -86,15 +99,27 @@ export const usePromptStore = create<PromptState>()(
       
       setTemplateName: (name) => set({ templateName: name }),
       
+      setCurrentTemplateId: (id) => set({ currentTemplateId: id }),
+      
+      setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
+      
+      setAutoSaveInterval: (minutes) => set({ 
+        autoSaveInterval: Math.max(1, Math.min(60, minutes)) 
+      }),
+      
+      updateLastSaveTime: () => set({ lastSaveTime: new Date() }),
+      
       resetToDefault: () => set({ 
         sections: initialSections,
-        templateName: ''
+        templateName: '',
+        currentTemplateId: null,
       }),
       
       clearAll: () => set({ 
         sections: initialSections.filter(section => section.isRequired),
         inspirationItems: [],
-        templateName: ''
+        templateName: '',
+        currentTemplateId: null,
       }),
     }),
     {

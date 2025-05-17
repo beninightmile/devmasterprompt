@@ -5,8 +5,8 @@ import { usePromptStore } from '@/store/promptStore';
 import { estimatePromptTokens, generatePromptText } from './prompt-service';
 
 export function saveCurrentPromptAsTemplate(name: string, description?: string, tags?: string[]): string {
-  const { sections } = usePromptStore.getState();
-  const { saveTemplate } = useTemplateStore.getState();
+  const { sections, currentTemplateId } = usePromptStore.getState();
+  const { saveTemplate, updateTemplate, templates } = useTemplateStore.getState();
   
   // Only save non-empty sections
   const nonEmptySections = sections.filter(section => 
@@ -17,18 +17,49 @@ export function saveCurrentPromptAsTemplate(name: string, description?: string, 
   const promptText = generatePromptText(nonEmptySections);
   const totalTokens = estimatePromptTokens(promptText);
   
-  return saveTemplate({
-    name,
-    description,
-    sections: nonEmptySections,
-    tags,
-    totalTokens,
-  });
+  // Check if we're updating an existing template
+  if (currentTemplateId && templates.some(t => t.id === currentTemplateId)) {
+    updateTemplate(currentTemplateId, {
+      name,
+      description,
+      sections: nonEmptySections,
+      tags,
+      totalTokens,
+    });
+    return currentTemplateId;
+  } else {
+    // Create a new template
+    return saveTemplate({
+      name,
+      description,
+      sections: nonEmptySections,
+      tags,
+      totalTokens,
+    });
+  }
+}
+
+export function autoSaveTemplate(): string | null {
+  const { sections, templateName, currentTemplateId, updateLastSaveTime } = usePromptStore.getState();
+  
+  // Only auto-save if we have a template name
+  if (!templateName.trim()) {
+    return null;
+  }
+  
+  try {
+    const id = saveCurrentPromptAsTemplate(templateName);
+    updateLastSaveTime();
+    return id;
+  } catch (error) {
+    console.error('Auto-save failed:', error);
+    return null;
+  }
 }
 
 export function loadTemplateIntoPrompt(templateId: string): boolean {
   const { templates } = useTemplateStore.getState();
-  const { updateSection, addSection, removeSection, sections, setTemplateName } = usePromptStore.getState();
+  const { updateSection, addSection, removeSection, sections, setTemplateName, setCurrentTemplateId } = usePromptStore.getState();
   
   const template = templates.find(t => t.id === templateId);
   
@@ -38,6 +69,9 @@ export function loadTemplateIntoPrompt(templateId: string): boolean {
   
   // Set the template name in the prompt store
   setTemplateName(template.name);
+  
+  // Set the current template ID
+  setCurrentTemplateId(templateId);
   
   // Handle existing sections
   const existingIds = sections.map(s => s.id);

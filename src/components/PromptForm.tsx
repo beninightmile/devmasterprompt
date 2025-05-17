@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
+import { autoSaveTemplate } from '@/services/template-service';
+import { useToast } from '@/hooks/use-toast';
 import PromptFormHeader from './prompt-form/PromptFormHeader';
 import NewSectionDialog from './prompt-form/NewSectionDialog';
 import SaveTemplateFormDialog from './prompt-form/SaveTemplateFormDialog';
@@ -18,15 +20,63 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     setPreviewMode,
     addSection,
     reorderSections,
-    templateName
+    clearAll,
+    templateName,
+    currentTemplateId,
+    autoSaveEnabled,
+    autoSaveInterval,
+    lastSaveTime,
+    setAutoSaveEnabled,
+    setAutoSaveInterval,
   } = usePromptStore();
   
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const autoSaveTimerRef = useRef<number | null>(null);
 
   // Generate the prompt text for token counting
   const promptText = generatePromptText(sections);
+  
+  // Setup auto-save
+  useEffect(() => {
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      window.clearInterval(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+    
+    // Set up new timer if auto-save is enabled
+    if (autoSaveEnabled && templateName.trim()) {
+      const intervalMs = autoSaveInterval * 60 * 1000; // Convert minutes to milliseconds
+      autoSaveTimerRef.current = window.setInterval(() => {
+        handleAutoSave();
+      }, intervalMs);
+    }
+    
+    // Clean up on unmount
+    return () => {
+      if (autoSaveTimerRef.current) {
+        window.clearInterval(autoSaveTimerRef.current);
+      }
+    };
+  }, [autoSaveEnabled, autoSaveInterval, templateName]);
+  
+  const handleAutoSave = () => {
+    if (!templateName.trim()) {
+      return; // Don't auto-save if no template name provided
+    }
+    
+    const savedId = autoSaveTemplate();
+    if (savedId) {
+      toast({
+        title: "Auto-saved",
+        description: `"${templateName}" has been automatically saved.`,
+        duration: 3000,
+      });
+    }
+  };
   
   const handleDragStart = (id: string) => {
     setDraggedSectionId(id);
@@ -84,6 +134,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     setSaveTemplateDialogOpen(true);
   };
   
+  const handleClearAll = () => {
+    const confirmClear = window.confirm("Are you sure you want to clear all content? This action cannot be undone.");
+    if (confirmClear) {
+      clearAll();
+      toast({
+        title: "Content cleared",
+        description: "All sections have been reset to their default state.",
+      });
+    }
+  };
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Header with template name, preview toggle, and action buttons */}
@@ -93,6 +154,12 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         promptText={promptText}
         onOpenSaveDialog={handleOpenSaveDialog}
         onOpenNewSectionDialog={() => setNewSectionDialogOpen(true)}
+        onClearAll={handleClearAll}
+        autoSaveEnabled={autoSaveEnabled}
+        autoSaveInterval={autoSaveInterval}
+        lastSaveTime={lastSaveTime}
+        onAutoSaveToggle={setAutoSaveEnabled}
+        onAutoSaveIntervalChange={setAutoSaveInterval}
       />
 
       {/* Section list */}

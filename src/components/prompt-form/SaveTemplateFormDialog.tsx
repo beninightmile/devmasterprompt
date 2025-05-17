@@ -11,8 +11,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { saveCurrentPromptAsTemplate } from '@/services/template-service';
+import { usePromptStore } from '@/store/promptStore';
 
 interface SaveTemplateFormDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
   const [templateDescription, setTemplateDescription] = useState('');
   const [templateTags, setTemplateTags] = useState('');
   const { toast } = useToast();
+  const { currentTemplateId, updateLastSaveTime } = usePromptStore();
 
   // Initialize the template name when the dialog opens
   useEffect(() => {
@@ -53,15 +55,19 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
         .map(tag => tag.trim())
         .filter(tag => tag !== '');
       
-      saveCurrentPromptAsTemplate(
+      const savedId = saveCurrentPromptAsTemplate(
         templateName.trim(),
         templateDescription.trim() || undefined,
         tags.length > 0 ? tags : undefined
       );
       
+      updateLastSaveTime();
+      
       toast({
-        title: "Template saved",
-        description: "Your template has been saved successfully.",
+        title: currentTemplateId ? "Template updated" : "Template saved",
+        description: currentTemplateId 
+          ? "Your template has been updated successfully."
+          : "Your template has been saved successfully.",
       });
       
       // Reset form and close dialog
@@ -85,7 +91,7 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save as Template</DialogTitle>
+          <DialogTitle>{currentTemplateId ? "Update Template" : "Save as Template"}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
@@ -117,7 +123,9 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSaveTemplate}>Save Template</Button>
+          <Button type="submit" onClick={handleSaveTemplate}>
+            {currentTemplateId ? "Update Template" : "Save Template"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
