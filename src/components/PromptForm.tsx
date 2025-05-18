@@ -7,7 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import PromptFormHeader from './prompt-form/PromptFormHeader';
 import NewSectionDialog from './prompt-form/NewSectionDialog';
 import SaveTemplateFormDialog from './prompt-form/SaveTemplateFormDialog';
+import UploadPromptDialog from './prompt-form/UploadPromptDialog';
 import SectionList from './prompt-form/SectionList';
+import { PromptSection } from '@/types/prompt';
 
 interface PromptFormProps {
   onPreviewToggle?: (value: boolean) => void;
@@ -33,6 +35,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { toast } = useToast();
   const autoSaveTimerRef = useRef<number | null>(null);
 
@@ -145,6 +148,25 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     }
   };
   
+  const handleOpenUploadDialog = () => {
+    setUploadDialogOpen(true);
+  };
+  
+  const handleImportSections = (uploadedSections: PromptSection[]) => {
+    // Remove any existing non-required sections
+    clearAll();
+    
+    // Add all the uploaded sections
+    uploadedSections.forEach(section => {
+      addSection(section);
+    });
+    
+    toast({
+      title: "Prompt imported",
+      description: `${uploadedSections.length} sections were successfully imported.`,
+    });
+  };
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Header with template name, preview toggle, and action buttons */}
@@ -154,6 +176,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         promptText={promptText}
         onOpenSaveDialog={handleOpenSaveDialog}
         onOpenNewSectionDialog={() => setNewSectionDialogOpen(true)}
+        onOpenUploadDialog={handleOpenUploadDialog}
         onClearAll={handleClearAll}
         autoSaveEnabled={autoSaveEnabled}
         autoSaveInterval={autoSaveInterval}
@@ -184,6 +207,13 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         open={saveTemplateDialogOpen}
         onOpenChange={setSaveTemplateDialogOpen}
         initialName={templateName}
+      />
+      
+      {/* Upload prompt dialog */}
+      <UploadPromptDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onImportSections={handleImportSections}
       />
     </div>
   );

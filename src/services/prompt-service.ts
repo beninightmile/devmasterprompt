@@ -74,3 +74,20 @@ export function getModelCompatibility(tokenCount: number): {
 export function getNonEmptySectionsCount(sections: PromptSection[]): number {
   return sections.filter(section => section.content.trim() !== '').length;
 }
+
+export function mergeSections(existingSections: PromptSection[], newSections: PromptSection[]): PromptSection[] {
+  // Create a map of existing sections by ID for quick lookups
+  const existingMap = new Map(existingSections.map(section => [section.id, section]));
+  
+  // First, update any existing sections with new content
+  const updatedExisting = existingSections.map(section => {
+    const match = newSections.find(newSection => newSection.id === section.id);
+    return match ? { ...section, content: match.content } : section;
+  });
+  
+  // Then add any completely new sections (that don't exist by ID)
+  const newOnly = newSections.filter(section => !existingMap.has(section.id));
+  
+  // Sort all sections by order
+  return [...updatedExisting, ...newOnly].sort((a, b) => a.order - b.order);
+}

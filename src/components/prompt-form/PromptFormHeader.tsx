@@ -1,13 +1,15 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Save, Eye, Trash2, Clock } from 'lucide-react';
+import { PlusCircle, Save, Eye, Trash2, Clock, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import TokenCounter from '@/components/TokenCounter';
 import { usePromptStore } from '@/store/promptStore';
 import AutoSaveSettings from './AutoSaveSettings';
 import { format } from 'date-fns';
+
 interface PromptFormHeaderProps {
   isPreviewMode: boolean;
   onPreviewToggle: (value: boolean) => void;
@@ -15,12 +17,14 @@ interface PromptFormHeaderProps {
   onOpenSaveDialog: () => void;
   onOpenNewSectionDialog: () => void;
   onClearAll: () => void;
+  onOpenUploadDialog: () => void;
   autoSaveEnabled: boolean;
   autoSaveInterval: number;
   lastSaveTime: Date | null;
   onAutoSaveToggle: (enabled: boolean) => void;
   onAutoSaveIntervalChange: (minutes: number) => void;
 }
+
 const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
   isPreviewMode,
   onPreviewToggle,
@@ -28,6 +32,7 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
   onOpenSaveDialog,
   onOpenNewSectionDialog,
   onClearAll,
+  onOpenUploadDialog,
   autoSaveEnabled,
   autoSaveInterval,
   lastSaveTime,
@@ -39,6 +44,7 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
     setTemplateName,
     currentTemplateId
   } = usePromptStore();
+
   return <div className="flex flex-col gap-4 mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center flex-1">
@@ -50,6 +56,15 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
         </div>
         
         <div className="flex items-center">
+          <Button 
+            variant="outline" 
+            className="flex items-center space-x-2 mr-3" 
+            onClick={onOpenUploadDialog}
+          >
+            <Upload size={16} />
+            <span>Upload Prompt</span>
+          </Button>
+          
           <AutoSaveSettings enabled={autoSaveEnabled} interval={autoSaveInterval} onEnabledChange={onAutoSaveToggle} onIntervalChange={onAutoSaveIntervalChange} />
           {lastSaveTime && <span className="text-xs text-muted-foreground ml-2">
               Last saved: {format(lastSaveTime, 'HH:mm:ss')}
@@ -83,4 +98,5 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
       </div>
     </div>;
 };
+
 export default PromptFormHeader;
