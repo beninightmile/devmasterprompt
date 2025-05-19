@@ -4,13 +4,13 @@ import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
 import { autoSaveTemplate } from '@/services/template-service';
 import { useToast } from '@/hooks/use-toast';
-import PromptFormHeader from './prompt-form/PromptFormHeader';
-import NewSectionDialog from './prompt-form/NewSectionDialog';
-import SaveTemplateFormDialog from './prompt-form/SaveTemplateFormDialog';
-import UploadPromptDialog from './prompt-form/upload-dialog/UploadPromptDialog';
-import SectionList from './prompt-form/SectionList';
-import DragAndDropManager from './prompt-form/DragAndDropManager';
-import PromptFormActions from './prompt-form/PromptFormActions';
+import PromptFormHeader from './PromptFormHeader';
+import NewSectionDialog from './NewSectionDialog';
+import SaveTemplateFormDialog from './SaveTemplateFormDialog';
+import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
+import SectionList from './SectionList';
+import DragAndDropManager from './DragAndDropManager';
+import PromptFormActions from './PromptFormActions';
 import { PromptSection } from '@/types/prompt';
 
 interface PromptFormProps {
