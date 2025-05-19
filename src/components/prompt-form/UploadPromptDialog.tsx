@@ -238,7 +238,7 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
               </div>
               
               {error && (
-                <Alert variant="warning" className="py-2 px-3">
+                <Alert variant="default" className="py-2 px-3 border-yellow-400 bg-yellow-50 text-yellow-800">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-xs">{error}</AlertDescription>
                 </Alert>
