@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePromptStore } from '@/store/promptStore';
-import PromptForm from '@/components/PromptForm';
+import PromptForm from '@/components/prompt-form/PromptForm';
 import PromptPreview from '@/components/PromptPreview';
 
 const BuilderPage: React.FC = () => {
