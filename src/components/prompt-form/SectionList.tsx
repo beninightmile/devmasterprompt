@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import PromptSection from '@/components/PromptSection';
 import { PromptSection as PromptSectionType } from '@/types/prompt';
 
@@ -8,6 +8,7 @@ interface SectionListProps {
   onDragOver: (id: string) => void;
   onDragStart: (id: string) => void;
   onDragEnd: () => void;
+  draggedSectionId?: string | null;  // Added prop to match what's being passed
 }
 
 const SectionList: React.FC<SectionListProps> = ({
@@ -15,19 +16,8 @@ const SectionList: React.FC<SectionListProps> = ({
   onDragOver,
   onDragStart,
   onDragEnd,
+  draggedSectionId,
 }) => {
-  const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
-
-  const handleDragStart = (id: string) => {
-    setDraggedSectionId(id);
-    onDragStart(id);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedSectionId(null);
-    onDragEnd();
-  };
-
   // Sort sections by order
   const sortedSections = [...sections].sort((a, b) => a.order - b.order);
 
@@ -41,8 +31,8 @@ const SectionList: React.FC<SectionListProps> = ({
             content={section.content} 
             isRequired={section.isRequired}
             isDragging={section.id === draggedSectionId}
-            onDragStart={() => handleDragStart(section.id)}
-            onDragEnd={handleDragEnd}
+            onDragStart={() => onDragStart(section.id)}
+            onDragEnd={onDragEnd}
           />
         </div>
       ))}
