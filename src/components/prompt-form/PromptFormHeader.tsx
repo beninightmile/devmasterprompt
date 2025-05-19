@@ -55,10 +55,10 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
           </div>
         </div>
         
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
-            className="flex items-center space-x-2 mr-3" 
+            className="flex items-center gap-2" 
             onClick={onOpenUploadDialog}
           >
             <Upload size={16} />

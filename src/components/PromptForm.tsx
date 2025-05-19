@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePromptStore } from '@/store/promptStore';
-import { generatePromptText } from '@/services/prompt-service';
+import { generatePromptText, cleanupSectionName, mergeSections } from '@/services/prompt-service';
 import { autoSaveTemplate } from '@/services/template-service';
 import { useToast } from '@/hooks/use-toast';
 import PromptFormHeader from './prompt-form/PromptFormHeader';
@@ -153,18 +153,57 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   };
   
   const handleImportSections = (uploadedSections: PromptSection[]) => {
-    // Remove any existing non-required sections
-    clearAll();
+    // Clean up section names to be more readable
+    const cleanedSections = uploadedSections.map(section => ({
+      ...section,
+      name: cleanupSectionName(section.name)
+    }));
     
-    // Add all the uploaded sections
-    uploadedSections.forEach(section => {
-      addSection(section);
-    });
-    
-    toast({
-      title: "Prompt imported",
-      description: `${uploadedSections.length} sections were successfully imported.`,
-    });
+    // Ask if user wants to merge with existing content or replace it
+    if (sections.filter(s => s.content.trim() !== '').length > 0 && cleanedSections.length > 0) {
+      // There's existing content, so confirm before replacing
+      const shouldMerge = window.confirm(
+        "Do you want to merge the uploaded content with your existing sections? " +
+        "Click OK to merge or Cancel to replace all existing content."
+      );
+      
+      if (shouldMerge) {
+        // Merge with existing content
+        const mergedSections = mergeSections(sections, cleanedSections);
+        
+        // Reset sections and add all merged ones
+        clearAll();
+        mergedSections.forEach(section => {
+          addSection(section);
+        });
+        
+        toast({
+          title: "Content merged",
+          description: `${cleanedSections.length} sections were successfully merged with existing content.`,
+        });
+      } else {
+        // Replace existing content
+        clearAll();
+        cleanedSections.forEach(section => {
+          addSection(section);
+        });
+        
+        toast({
+          title: "Content replaced",
+          description: `${cleanedSections.length} sections were imported, replacing previous content.`,
+        });
+      }
+    } else {
+      // No existing content or no uploaded content, just add the sections
+      cleanedSections.forEach(section => {
+        addSection(section);
+      });
+      
+      toast({
+        title: "Content imported",
+        description: `${cleanedSections.length} sections were successfully imported.`,
+      });
+    }
   };
   
   return (

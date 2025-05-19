@@ -7,28 +7,42 @@ type DetectedSection = {
 };
 
 /**
- * Parse free-form text into sections based on markdown headings and other patterns
+ * Parse free-form text into sections based on various patterns
  */
 export function parseTextIntoSections(text: string): DetectedSection[] {
   if (!text || typeof text !== 'string') {
     return [];
   }
   
-  // Try to detect sections based on markdown headings (## Section Name)
+  // Try different section detection strategies in order of preference
+  
+  // 1. Try to detect sections based on markdown headings (## Section Name)
   const markdownSections = parseMarkdownHeadings(text);
-  if (markdownSections.length > 0) {
+  if (markdownSections.length > 1) {
     return markdownSections;
   }
   
-  // Fall back to looking for colon-separated titles (Section Name: content)
+  // 2. Try to detect numbered sections (1. Section Name or 1.1 Section Name)
+  const numberedSections = parseNumberedSections(text);
+  if (numberedSections.length > 1) {
+    return numberedSections;
+  }
+  
+  // 3. Try to detect special prefixed sections (@Core_1: Section Name)
+  const prefixedSections = parsePrefixedSections(text);
+  if (prefixedSections.length > 1) {
+    return prefixedSections;
+  }
+  
+  // 4. Fall back to looking for colon-separated titles (Section Name: content)
   const colonSections = parseColonSeparatedSections(text);
-  if (colonSections.length > 0) {
+  if (colonSections.length > 1) {
     return colonSections;
   }
   
-  // Fall back to paragraph detection for larger blocks of text
+  // 5. Fall back to paragraph detection for larger blocks of text
   const paragraphSections = parseParagraphs(text);
-  if (paragraphSections.length > 0) {
+  if (paragraphSections.length > 1) {
     return paragraphSections;
   }
   
@@ -55,7 +69,7 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
         name: matchedDefault.name,
         content: detectedSection.content,
         order: matchedDefault.order,
-        isRequired: matchedDefault.required
+        isRequired: matchedDefault.isRequired
       };
     } else {
       // Otherwise create a new custom section
@@ -112,6 +126,105 @@ function parseMarkdownHeadings(text: string): DetectedSection[] {
   return sections;
 }
 
+/**
+ * Parse numbered sections like "1. Section Name" or "1.1 Section Name"
+ */
+function parseNumberedSections(text: string): DetectedSection[] {
+  const sections: DetectedSection[] = [];
+  const lines = text.split('\n');
+  let currentSection: DetectedSection | null = null;
+  
+  // Regular expression for numbered section headers
+  // Matches patterns like:
+  // 1. Section Name
+  // 1.1 Section Name
+  // 1.1. Section Name
+  const numberedHeaderRegex = /^(\d+\.|\d+\.\d+\.?)\s+([^\n]+)$/;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headerMatch = line.match(numberedHeaderRegex);
+    
+    if (headerMatch) {
+      // We found a numbered heading
+      if (currentSection && currentSection.content.trim()) {
+        sections.push(currentSection);
+      }
+      
+      // Start a new section, keeping the number prefix for clarity
+      currentSection = {
+        name: line.trim(), // Keep the full line as the section name including the number
+        content: ''
+      };
+    } else if (currentSection) {
+      // Add this line to the current section's content
+      currentSection.content += line + '\n';
+    } else if (line.trim()) {
+      // Text before any heading becomes "Introduction" section
+      currentSection = {
+        name: 'Introduction',
+        content: line + '\n'
+      };
+    }
+  }
+  
+  // Add the final section if there is one
+  if (currentSection && currentSection.content.trim()) {
+    sections.push(currentSection);
+  }
+  
+  return sections;
+}
+
+/**
+ * Parse sections with special prefixes like "@Core_1: Section Name"
+ */
+function parsePrefixedSections(text: string): DetectedSection[] {
+  const sections: DetectedSection[] = [];
+  const lines = text.split('\n');
+  let currentSection: DetectedSection | null = null;
+  
+  // Regular expression for prefixed section headers
+  // Matches patterns like:
+  // @Core_1: Section Name
+  // @Feature-2: Section Description
+  const prefixedHeaderRegex = /^(@[A-Za-z0-9_\-]+)(?:\:|\s+\:)\s*(.+)$/;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headerMatch = line.match(prefixedHeaderRegex);
+    
+    if (headerMatch) {
+      // We found a prefixed heading
+      if (currentSection && currentSection.content.trim()) {
+        sections.push(currentSection);
+      }
+      
+      // Start a new section
+      currentSection = {
+        name: `${headerMatch[1]}: ${headerMatch[2]}`.trim(),
+        content: ''
+      };
+    } else if (currentSection) {
+      // Add this line to the current section's content
+      currentSection.content += line + '\n';
+    } else if (line.trim()) {
+      // Text before any heading becomes "Introduction" section
+      currentSection = {
+        name: 'Introduction',
+        content: line + '\n'
+      };
+    }
+  }
+  
+  // Add the final section if there is one
+  if (currentSection && currentSection.content.trim()) {
+    sections.push(currentSection);
+  }
+  
+  return sections;
+}
+
 function parseColonSeparatedSections(text: string): DetectedSection[] {
   const sections: DetectedSection[] = [];
   const lines = text.split('\n');
@@ -119,9 +232,15 @@ function parseColonSeparatedSections(text: string): DetectedSection[] {
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const colonMatch = line.match(/^([^:]+):\s*(.*)$/);
     
-    if (colonMatch && colonMatch[1].length < 50 && !colonMatch[1].includes(' ') && colonMatch[1] === colonMatch[1].trim()) {
+    // Improved colon detection regex
+    // Matches clear label-like patterns at the start of a line
+    // More specific to avoid false positives in normal text with colons
+    const colonMatch = line.match(/^([A-Za-z0-9_\- ]{2,50}?):\s*(.*)$/);
+    
+    // Check if it looks like a section header (contains a word followed by a colon)
+    // and isn't just a typical sentence with a colon
+    if (colonMatch && !line.includes(',') && colonMatch[1].trim().length < 50) {
       // If we found a potential section header and had a previous section, save it
       if (currentSection && currentSection.content.trim()) {
         sections.push(currentSection);
@@ -153,17 +272,18 @@ function parseColonSeparatedSections(text: string): DetectedSection[] {
 }
 
 function parseParagraphs(text: string): DetectedSection[] {
-  const paragraphs = text.split(/\n{2,}/);
+  // Split on 2+ consecutive newlines OR clear paragraph breaks with indentation patterns
+  const paragraphSplits = text.split(/\n{2,}|\n[ \t]+\n/);
   const sections: DetectedSection[] = [];
   
   // Only use paragraph parsing if we have a reasonable number of paragraphs
   // (too many tiny sections isn't helpful)
-  if (paragraphs.length < 3 || paragraphs.length > 15) {
+  if (paragraphSplits.length < 3 || paragraphSplits.length > 20) {
     return [];
   }
   
-  for (let i = 0; i < paragraphs.length; i++) {
-    const paragraph = paragraphs[i].trim();
+  for (let i = 0; i < paragraphSplits.length; i++) {
+    const paragraph = paragraphSplits[i].trim();
     if (!paragraph) continue;
     
     // Try to extract a title from the first line
@@ -172,13 +292,21 @@ function parseParagraphs(text: string): DetectedSection[] {
     let content = paragraph;
     
     if (lines[0] && lines[0].length < 80) {
-      // Use first line as title if it's reasonably short
-      title = lines[0].trim().replace(/[:.!?]+$/, '');
-      content = lines.slice(1).join('\n').trim();
-      
-      // If we didn't get any content, use the title as content too
-      if (!content) {
-        content = title;
+      // Use first line as title if it's reasonably short and looks like a heading
+      // (capitalized, doesn't end with a period, etc.)
+      const firstLine = lines[0].trim();
+      if (
+        firstLine === firstLine.toUpperCase() || // ALL CAPS
+        /^[A-Z]/.test(firstLine) && // Starts with capital letter
+        !firstLine.endsWith('.') // Doesn't end with period
+      ) {
+        title = firstLine.replace(/[:.!?]+$/, '');
+        content = lines.slice(1).join('\n').trim();
+        
+        // If we didn't get any content, use the title as content too
+        if (!content) {
+          content = title;
+        }
       }
     }
     
@@ -199,10 +327,21 @@ function findMatchingDefaultSection(detectedName: string, defaultSectionsMap: Ma
     return defaultSectionsMap.get(normalizedName);
   }
   
+  // Strip common prefixes for matching
+  const strippedName = normalizedName
+    .replace(/^(\d+\.|\d+\.\d+\.?)\s+/, '') // Remove numbered prefixes
+    .replace(/^@[a-z0-9_\-]+:\s*/i, '');    // Remove @Core_X: type prefixes
+  
+  if (defaultSectionsMap.has(strippedName)) {
+    return defaultSectionsMap.get(strippedName);
+  }
+  
   // Partial match - check if any default section name is contained in the detected name
   for (const [defaultName, section] of defaultSectionsMap.entries()) {
     if (normalizedName.includes(defaultName) || 
-        defaultName.includes(normalizedName)) {
+        defaultName.includes(normalizedName) ||
+        strippedName.includes(defaultName) ||
+        defaultName.includes(strippedName)) {
       return section;
     }
   }

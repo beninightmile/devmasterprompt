@@ -91,3 +91,21 @@ export function mergeSections(existingSections: PromptSection[], newSections: Pr
   // Sort all sections by order
   return [...updatedExisting, ...newOnly].sort((a, b) => a.order - b.order);
 }
+
+/**
+ * Adjust section names to be more readable by removing prefixes and numbers
+ */
+export function cleanupSectionName(name: string): string {
+  // Remove numbered prefixes like "1." or "2.1."
+  let cleanName = name.replace(/^\d+\.(\d+\.)*\s+/, '');
+  
+  // Remove special prefixes like "@Core_1:"
+  cleanName = cleanName.replace(/^@[A-Za-z0-9_\-]+:\s*/, '');
+  
+  // Capitalize the first letter
+  if (cleanName.length > 0) {
+    cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+  }
+  
+  return cleanName;
+}

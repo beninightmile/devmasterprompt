@@ -12,6 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { parseTextIntoSections, matchWithDefaultSections } from '@/services/prompt-parser-service';
 import { PromptSection } from '@/types/prompt';
 
@@ -53,10 +55,7 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
-        const sections = parseTextIntoSections(text);
-        setDetectedSections(sections);
-        setEditableSections([...sections]);
-        setIsProcessing(false);
+        processText(text);
       } catch (err) {
         setError('Failed to process the text file');
         setIsProcessing(false);
@@ -69,6 +68,25 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
     };
     
     reader.readAsText(file);
+  };
+  
+  const processText = (text: string) => {
+    try {
+      const sections = parseTextIntoSections(text);
+      setDetectedSections(sections);
+      setEditableSections([...sections]);
+      setIsProcessing(false);
+      
+      // Show warning if only one section was detected from a large text
+      if (sections.length === 1 && text.length > 500) {
+        setError('Only one section was detected. The text structure may be complex. You can manually split the content into sections if needed.');
+      } else {
+        setError(null);
+      }
+    } catch (err) {
+      setError('Error analyzing text structure');
+      setIsProcessing(false);
+    }
   };
   
   const handleSectionNameChange = (index: number, newName: string) => {
@@ -104,10 +122,46 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
     const textareaElement = document.getElementById('direct-text-input') as HTMLTextAreaElement;
     if (textareaElement && textareaElement.value) {
       const text = textareaElement.value;
-      const sections = parseTextIntoSections(text);
-      setDetectedSections(sections);
-      setEditableSections([...sections]);
+      setIsProcessing(true);
+      processText(text);
+    } else {
+      setError('Please enter text to process');
     }
+  };
+  
+  const handleSplitSection = (index: number) => {
+    // Create a utility function to split large sections into smaller ones
+    const section = editableSections[index];
+    const content = section.content;
+    
+    // Try to find natural break points (paragraphs)
+    const paragraphs = content.split(/\n{2,}/);
+    
+    if (paragraphs.length <= 1) {
+      setError('No natural break points found to split this section');
+      return;
+    }
+    
+    // Create new sections from paragraphs
+    const newSections: DetectedSection[] = [];
+    
+    paragraphs.forEach((paragraph, i) => {
+      if (!paragraph.trim()) return;
+      
+      newSections.push({
+        name: `${section.name} - Part ${i + 1}`,
+        content: paragraph.trim()
+      });
+    });
+    
+    // Replace the original section with the new subsections
+    const updatedSections = [
+      ...editableSections.slice(0, index),
+      ...newSections,
+      ...editableSections.slice(index + 1)
+    ];
+    
+    setEditableSections(updatedSections);
   };
   
   const handleClearSections = () => {
@@ -139,7 +193,6 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
                 onChange={handleFileChange}
                 disabled={isProcessing}
               />
-              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
             
             <div className="space-y-2">
@@ -153,25 +206,76 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
                 Process Text
               </Button>
             </div>
+            
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">The parser can detect sections based on:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Markdown headings (## Section Name)</li>
+                <li>Numbered sections (1. Section Name)</li>
+                <li>Special prefixes (@Core_1: Section)</li>
+                <li>Colon-separated titles (Section Name: content)</li>
+                <li>Paragraphs with distinct formatting</li>
+              </ul>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Found {detectedSections.length} sections. You can edit the section names and content below.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm">
+                  Found <span className="font-medium">{detectedSections.length}</span> sections
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You can edit section names and content before importing
+                </p>
+              </div>
+              
+              {error && (
+                <Alert variant="warning" className="py-2 px-3">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">{error}</AlertDescription>
+                </Alert>
+              )}
+            </div>
             
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-6">
                 {editableSections.map((section, index) => (
                   <div key={index} className="space-y-2 border-b pb-4">
-                    <Label htmlFor={`section-name-${index}`}>Section Name</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor={`section-name-${index}`}>Section Name</Label>
+                      {section.content.length > 500 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleSplitSection(index)}
+                          className="text-xs"
+                        >
+                          Auto-split section
+                        </Button>
+                      )}
+                    </div>
+                    
                     <Input
                       id={`section-name-${index}`}
                       value={section.name}
                       onChange={(e) => handleSectionNameChange(index, e.target.value)}
                     />
                     
-                    <Label htmlFor={`section-content-${index}`}>Content</Label>
+                    <Label htmlFor={`section-content-${index}`} className="flex items-center">
+                      <span>Content</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({section.content.length} characters)
+                      </span>
+                    </Label>
+                    
                     <Textarea
                       id={`section-content-${index}`}
                       value={section.content}
