@@ -5,6 +5,8 @@ export interface PromptSection {
   content: string;
   order: number;
   isRequired: boolean;
+  level?: number;     // Hierarchical level for nested display
+  parentId?: string;  // Reference to parent section for hierarchy
 }
 
 export interface PromptTemplate {

@@ -7,7 +7,7 @@ import { Copy, Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { estimatePromptTokens } from '@/services/prompt-service';
 import ModelCompatibility from './ModelCompatibility';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 
 const PromptPreview: React.FC = () => {
@@ -18,17 +18,35 @@ const PromptPreview: React.FC = () => {
   // Sort sections by order
   const sortedSections = [...sections].sort((a, b) => a.order - b.order);
   
-  // Generate final prompt text
-  const promptText = sortedSections
-    .filter(section => section.content.trim() !== '')
-    .map(section => {
-      return `## ${section.name}\n${section.content}\n`;
-    })
-    .join('\n');
+  // Generate final prompt text with proper hierarchical formatting
+  const promptText = generateFormattedPrompt(sortedSections);
   
   // Calculate total tokens
   const totalTokens = estimatePromptTokens(promptText);
     
+  // Helper function to generate formatted prompt text with proper hierarchy
+  function generateFormattedPrompt(sections: typeof sortedSections): string {
+    const nonEmptySections = sections.filter(section => section.content.trim() !== '');
+    
+    if (nonEmptySections.length === 0) {
+      return '';
+    }
+    
+    let result = '';
+    
+    // Process sections in order
+    for (const section of nonEmptySections) {
+      // Determine heading level based on section.level (default to level 1)
+      const level = section.level || 1;
+      const headingMarker = '#'.repeat(Math.min(level, 6)); // Markdown only supports h1-h6
+      
+      // Add the section heading and content
+      result += `${headingMarker} ${section.name}\n${section.content}\n\n`;
+    }
+    
+    return result.trim();
+  }
+  
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(promptText)
       .then(() => {

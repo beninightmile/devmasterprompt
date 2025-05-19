@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { defaultPromptSections } from '../core/registry';
@@ -40,6 +39,7 @@ const initialSections: PromptSection[] = defaultPromptSections.map(section => ({
   content: section.defaultContent,
   order: section.order,
   isRequired: section.required,
+  level: 1, // Default level for all sections
 }));
 
 export const usePromptStore = create<PromptState>()(
@@ -57,7 +57,11 @@ export const usePromptStore = create<PromptState>()(
       
       addSection: (section) => set(state => {
         const maxOrder = Math.max(0, ...state.sections.map(s => s.order));
-        const newSection = { ...section, order: maxOrder + 1 };
+        const newSection = { 
+          ...section, 
+          order: maxOrder + 1,
+          level: section.level || 1 // Ensure level is set
+        };
         return { sections: [...state.sections, newSection] };
       }),
       
@@ -67,12 +71,23 @@ export const usePromptStore = create<PromptState>()(
         ),
       })),
       
-      removeSection: (id) => set(state => ({
-        sections: state.sections.filter(section => section.id !== id),
-        activeSectionId: state.activeSectionId === id 
-          ? (state.sections.length > 1 ? state.sections[0].id : null) 
-          : state.activeSectionId,
-      })),
+      removeSection: (id) => set(state => {
+        // Get all sections that have this section as a parent
+        const childSections = state.sections.filter(s => s.parentId === id);
+        
+        // For child sections, either remove them or make them top-level
+        const remainingSections = state.sections.filter(section => {
+          // Keep the section if it's not the one being removed and not a child
+          return section.id !== id && section.parentId !== id;
+        });
+        
+        return {
+          sections: remainingSections,
+          activeSectionId: state.activeSectionId === id 
+            ? (remainingSections.length > 0 ? remainingSections[0].id : null) 
+            : state.activeSectionId,
+        };
+      }),
       
       reorderSections: (orderedIds) => set(state => {
         const orderedSections = orderedIds

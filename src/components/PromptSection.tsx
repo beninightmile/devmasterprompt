@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, Trash2 } from 'lucide-react';
 import TokenCounter from './TokenCounter';
 
 interface PromptSectionProps {
@@ -14,6 +14,7 @@ interface PromptSectionProps {
   content: string;
   isRequired: boolean;
   isDragging?: boolean;
+  level?: number;  // Added level property for hierarchical display
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
@@ -24,11 +25,13 @@ const PromptSection: React.FC<PromptSectionProps> = ({
   content,
   isRequired,
   isDragging,
+  level = 1,  // Default to level 1
   onDragStart,
   onDragEnd
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [sectionName, setSectionName] = useState(name);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { updateSection, removeSection } = usePromptStore();
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -50,8 +53,28 @@ const PromptSection: React.FC<PromptSectionProps> = ({
     }
   };
 
+  const toggleCollapsed = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  // Create a class based on the level for styling
+  const getLevelClass = () => {
+    if (!level || level <= 1) return '';
+    
+    // Apply a different border/styling based on level
+    const colors = [
+      'border-l-4 border-primary',
+      'border-l-4 border-secondary',
+      'border-l-4 border-accent',
+      'border-l-4 border-accent-pink',
+      'border-l-4 border-muted-foreground'
+    ];
+    
+    return colors[(level - 2) % colors.length];
+  };
+
   return (
-    <Card className={`prompt-section ${isDragging ? 'opacity-50' : ''}`}>
+    <Card className={`prompt-section ${isDragging ? 'opacity-50' : ''} ${getLevelClass()}`}>
       <CardHeader className="prompt-section-header p-3">
         <div className="flex items-center space-x-2">
           {!isRequired && (
@@ -63,6 +86,20 @@ const PromptSection: React.FC<PromptSectionProps> = ({
               onMouseUp={onDragEnd}
             >
               <GripVertical size={16} />
+            </Button>
+          )}
+          
+          {level > 1 && (
+            <Button
+              variant="ghost" 
+              size="sm" 
+              className="p-1" 
+              onClick={toggleCollapsed}
+            >
+              {isCollapsed ? 
+                <ChevronRight size={16} /> : 
+                <ChevronDown size={16} />
+              }
             </Button>
           )}
           
@@ -78,7 +115,7 @@ const PromptSection: React.FC<PromptSectionProps> = ({
           ) : (
             <div className="flex items-center gap-2">
               <h3
-                className="font-medium cursor-pointer"
+                className={`font-medium cursor-pointer ${level > 1 ? 'text-sm' : ''}`}
                 onClick={() => setIsEditing(true)}
               >
                 {name}
@@ -97,14 +134,16 @@ const PromptSection: React.FC<PromptSectionProps> = ({
         </div>
       </CardHeader>
       
-      <CardContent className="p-3 pt-0">
-        <Textarea
-          placeholder={`Add your ${name} content here...`}
-          value={content}
-          onChange={handleContentChange}
-          className="section-content min-h-[120px]"
-        />
-      </CardContent>
+      {!isCollapsed && (
+        <CardContent className="p-3 pt-0">
+          <Textarea
+            placeholder={`Add your ${name} content here...`}
+            value={content}
+            onChange={handleContentChange}
+            className="section-content min-h-[120px]"
+          />
+        </CardContent>
+      )}
     </Card>
   );
 };
