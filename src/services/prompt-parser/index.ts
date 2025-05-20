@@ -7,7 +7,8 @@ import {
   parseColonSeparatedSections,
   parseParagraphs,
   parseComplexDocument,
-  parseMixedFormatSections
+  parseMixedFormatSections,
+  parseCombinedFormatSections
 } from './section-parsers';
 import { matchWithDefaultSections } from './section-matcher';
 import { cleanupSectionName, mergeSections } from './section-utils';
@@ -20,15 +21,21 @@ export function parseTextIntoSections(text: string): DetectedSection[] {
     return [];
   }
   
-  // First try the advanced complex document parser that handles mixed formats
+  // First try the advanced complex document parser that can handle mixed formats
   const complexSections = parseComplexDocument(text);
   if (complexSections.length > 1) {
     // Assign IDs to sections if they don't have them
     return assignSectionIds(complexSections);
   }
   
-  // If the complex parser didn't find multiple sections, try the individual parsers
-  // in order of preference
+  // If the complex parser didn't find enough sections,
+  // try the specific combined format parser for documents with mixed section types
+  const combinedSections = parseCombinedFormatSections(text);
+  if (combinedSections.length > 1) {
+    return assignSectionIds(combinedSections);
+  }
+  
+  // If that didn't work, try the individual parsers in order of preference
   
   // 1. Try to detect sections based on markdown headings (## Section Name)
   const markdownSections = parseMarkdownHeadings(text);
@@ -61,7 +68,12 @@ export function parseTextIntoSections(text: string): DetectedSection[] {
   }
   
   // If no sections could be detected, return the entire text as one section
-  return assignSectionIds([{ name: 'Unsorted Content', content: text.trim(), level: 1 }]);
+  return assignSectionIds([{ 
+    name: 'Unsorted Content', 
+    content: text.trim(), 
+    level: 1,
+    order: 0 
+  }]);
 }
 
 /**

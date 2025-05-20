@@ -1,4 +1,3 @@
-
 import { DetectedSection } from './types';
 
 /**
@@ -86,7 +85,8 @@ export function parseNumberedSections(text: string): DetectedSection[] {
         name: line.trim(), // Keep the full line as the section name including the number
         content: '',
         level: level,      // Store the hierarchical level
-        numberPrefix: levelIndicator.trim() // Store the original number prefix for sorting
+        numberPrefix: levelIndicator.trim(), // Store the original number prefix for sorting
+        order: i           // Store the line position for ordering
       };
     } else if (currentSection) {
       // Add this line to the current section's content
@@ -96,7 +96,8 @@ export function parseNumberedSections(text: string): DetectedSection[] {
       currentSection = {
         name: 'Introduction',
         content: line + '\n',
-        level: 1
+        level: 1,
+        order: 0
       };
     }
   }
@@ -118,9 +119,10 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
   const lines = text.split('\n');
   let currentSection: DetectedSection | null = null;
   
-  // Enhanced regex for prefixed section headers
+  // Enhanced regex for prefixed section headers - improved for @Core_X formats
   // Supports various prefix patterns including @Core_1:, Block 1:, Feature 1.2:, etc.
-  const prefixedHeaderRegex = /^(@[A-Za-z0-9_\-]+|\b(?:Block|Feature|Core|Section)\s+(?:\d+(?:\.\d+)*))(?:\:|\s+\:)\s*(.+)$/i;
+  // Also handles whitespace variations between prefix and colon
+  const prefixedHeaderRegex = /^(@[A-Za-z0-9_\-]+|\b(?:Block|Feature|Core|Section)\s+(?:\d+(?:\.\d+)*))(?:\s*\:|\s+\:)\s*(.+)$/i;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -152,7 +154,8 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
         name: `${prefix}: ${headerMatch[2]}`.trim(),
         content: '',
         level: level,
-        blockPrefix: prefix // Store the original prefix for grouping
+        blockPrefix: prefix, // Store the original prefix for grouping
+        order: i            // Store the line position for ordering
       };
     } else if (currentSection) {
       // Add this line to the current section's content
@@ -162,7 +165,8 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
       currentSection = {
         name: 'Introduction',
         content: line + '\n',
-        level: 1
+        level: 1,
+        order: 0
       };
     }
   }
@@ -203,7 +207,8 @@ export function parseColonSeparatedSections(text: string): DetectedSection[] {
       currentSection = {
         name: colonMatch[1].trim(),
         content: colonMatch[2] ? colonMatch[2].trim() + '\n' : '',
-        level: 1 // Default level for colon sections
+        level: 1, // Default level for colon sections
+        order: i  // Store the line position for ordering
       };
     } else if (currentSection) {
       // Add this line to the current section's content
@@ -213,7 +218,8 @@ export function parseColonSeparatedSections(text: string): DetectedSection[] {
       currentSection = {
         name: 'Introduction',
         content: line + '\n',
-        level: 1
+        level: 1,
+        order: 0
       };
     }
   }
@@ -271,7 +277,8 @@ export function parseParagraphs(text: string): DetectedSection[] {
     sections.push({
       name: title || `Section ${i + 1}`,
       content: content,
-      level: 1 // Default level for paragraph sections
+      level: 1, // Default level for paragraph sections
+      order: i  // Store the position for ordering
     });
   }
   
@@ -330,8 +337,88 @@ export function parseMixedFormatSections(text: string): DetectedSection[] {
   return [{ 
     name: 'Unsorted Content', 
     content: text.trim(),
-    level: 1
+    level: 1,
+    order: 0
   }];
+}
+
+/**
+ * NEW PARSER: For specifically handling mixed formats in the same document
+ * This is especially useful for documents that have BOTH numbered sections AND prefixed sections
+ */
+export function parseCombinedFormatSections(text: string): DetectedSection[] {
+  const sections: DetectedSection[] = [];
+  const lines = text.split('\n');
+  let currentSection: DetectedSection | null = null;
+  
+  // Combined regex that can detect BOTH numbered sections AND prefixed sections
+  const combinedHeaderRegex = /^(?:(\d+(?:\.\d+)*\.?)\s+([^\n]+)|(@[A-Za-z0-9_\-]+|\b(?:Block|Feature|Core|Section)\s+(?:\d+(?:\.\d+)*))(?:\s*\:|\s+\:)\s*(.+))$/i;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headerMatch = line.match(combinedHeaderRegex);
+    
+    if (headerMatch) {
+      // If we found a heading and had a previous section, save it
+      if (currentSection && currentSection.content.trim()) {
+        sections.push(currentSection);
+      }
+      
+      // Check if we matched a numbered section or a prefixed section
+      if (headerMatch[1]) {
+        // This is a numbered section
+        const levelIndicator = headerMatch[1];
+        const level = levelIndicator.split('.').filter(Boolean).length;
+        
+        currentSection = {
+          name: `${levelIndicator} ${headerMatch[2]}`.trim(),
+          content: '',
+          level: level,
+          numberPrefix: levelIndicator.trim(),
+          order: i
+        };
+      } else {
+        // This is a prefixed section
+        const prefix = headerMatch[3].trim();
+        let level = 1; // Default level
+        
+        // Try to determine level from prefix
+        if (prefix.includes('_')) {
+          const levelMatch = prefix.match(/_(\d+)/);
+          if (levelMatch) level = parseInt(levelMatch[1], 10);
+        } else if (prefix.match(/\d+/)) {
+          const levelMatch = prefix.match(/\d+/);
+          if (levelMatch) level = parseInt(levelMatch[0], 10);
+        }
+        
+        currentSection = {
+          name: `${prefix}: ${headerMatch[4]}`.trim(),
+          content: '',
+          level: level,
+          blockPrefix: prefix,
+          order: i
+        };
+      }
+    } else if (currentSection) {
+      // Add this line to the current section's content
+      currentSection.content += line + '\n';
+    } else if (line.trim()) {
+      // Text before any heading becomes "Introduction" section
+      currentSection = {
+        name: 'Introduction',
+        content: line + '\n',
+        level: 1,
+        order: 0
+      };
+    }
+  }
+  
+  // Add the final section if there is one
+  if (currentSection && currentSection.content.trim()) {
+    sections.push(currentSection);
+  }
+  
+  return sections;
 }
 
 /**
@@ -339,16 +426,101 @@ export function parseMixedFormatSections(text: string): DetectedSection[] {
  * This uses a hybrid approach and retains hierarchical information
  */
 export function parseComplexDocument(text: string): DetectedSection[] {
-  // First try the mixed format parser which chooses the best strategy
-  const sections = parseMixedFormatSections(text);
-  
-  // If we found a decent number of sections, post-process them
-  if (sections.length > 1) {
+  // First, try the new combined format parser which handles mixed formats
+  const combinedSections = parseCombinedFormatSections(text);
+  if (combinedSections.length > 1) {
     // Post-process to enhance the structure
-    enhanceHierarchicalStructure(sections);
+    enhanceHierarchicalStructure(combinedSections);
+    return combinedSections;
   }
   
-  return sections;
+  // If the combined parser didn't find enough sections, 
+  // try all parsers and merge their results by position
+  const allSections: DetectedSection[] = [];
+  
+  // Add sections from all parsers
+  allSections.push(...parseMarkdownHeadings(text)
+    .filter(section => section.content.trim()));
+  allSections.push(...parseNumberedSections(text)
+    .filter(section => section.content.trim()));
+  allSections.push(...parsePrefixedSections(text)
+    .filter(section => section.content.trim()));
+  
+  // If we've found multiple sections from different parsers
+  if (allSections.length > 1) {
+    // Sort sections by their position in the document (order property)
+    allSections.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return 0;
+    });
+    
+    // Deduplicate sections that might overlap
+    const dedupedSections = deduplicateSections(allSections);
+    
+    // Build parent-child relationships
+    enhanceHierarchicalStructure(dedupedSections);
+    
+    return dedupedSections;
+  }
+  
+  // If we still don't have a good result, fall back to the mixed format parser
+  const mixedSections = parseMixedFormatSections(text);
+  if (mixedSections.length > 1) {
+    enhanceHierarchicalStructure(mixedSections);
+    return mixedSections;
+  }
+  
+  // Last resort: try colon sections and paragraphs
+  const colonSections = parseColonSeparatedSections(text);
+  if (colonSections.length > 1) {
+    enhanceHierarchicalStructure(colonSections);
+    return colonSections;
+  }
+  
+  const paragraphSections = parseParagraphs(text);
+  if (paragraphSections.length > 1) {
+    return paragraphSections;
+  }
+  
+  // If nothing worked, return the text as one section
+  return [{ 
+    name: 'Unsorted Content', 
+    content: text.trim(),
+    level: 1,
+    order: 0
+  }];
+}
+
+/**
+ * Helper to deduplicate sections that might overlap (from different parsers)
+ */
+function deduplicateSections(sections: DetectedSection[]): DetectedSection[] {
+  // Sort by order first to ensure we keep the earliest occurrence
+  sections.sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    return 0;
+  });
+  
+  // Use a map to track content we've seen
+  const contentFingerprints = new Map<string, boolean>();
+  const dedupedSections: DetectedSection[] = [];
+  
+  for (const section of sections) {
+    // Create a simple fingerprint of the content (first 50 chars)
+    const contentStart = section.content.trim().slice(0, 50);
+    
+    // If we haven't seen this content before, keep this section
+    if (!contentFingerprints.has(contentStart)) {
+      contentFingerprints.set(contentStart, true);
+      dedupedSections.push(section);
+    }
+  }
+  
+  return dedupedSections;
 }
 
 /**

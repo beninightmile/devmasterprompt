@@ -1,6 +1,8 @@
+
 import { DetectedSection } from './types';
 import { defaultPromptSections } from '@/core/registry';
 import { PromptSection } from '@/types/prompt';
+import { cleanupSectionName } from './section-utils';
 
 /**
  * Try to match detected sections with default template sections when possible
@@ -11,8 +13,11 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
   );
   
   return detectedSections.map((detectedSection, index) => {
+    // Clean up the section name for better matching
+    const cleanName = cleanupSectionName(detectedSection.name);
+    
     // Try to find a matching default section
-    const matchedDefault = findMatchingDefaultSection(detectedSection.name, defaultSectionsMap);
+    const matchedDefault = findMatchingDefaultSection(cleanName, defaultSectionsMap);
     
     if (matchedDefault) {
       // If found, use the default section's properties with the detected content
@@ -22,13 +27,14 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
         content: detectedSection.content,
         order: matchedDefault.order,
         isRequired: matchedDefault.isRequired,
-        level: detectedSection.level || 1 // Preserve hierarchical information
+        level: detectedSection.level || 1, // Preserve hierarchical information
+        parentId: detectedSection.parentId // Preserve parent reference if available
       };
     } else {
       // Otherwise create a new custom section
       return {
         id: detectedSection.id || crypto.randomUUID(),
-        name: detectedSection.name,
+        name: cleanName, // Use the cleaned name
         content: detectedSection.content,
         order: index + defaultPromptSections.length,
         isRequired: false,

@@ -1,3 +1,4 @@
+
 import { DetectedSection } from './types';
 
 /**
