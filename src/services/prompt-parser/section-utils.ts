@@ -1,4 +1,3 @@
-
 import { DetectedSection } from './types';
 
 /**
@@ -134,9 +133,12 @@ function findParentId(section: DetectedSection, potentialParents: DetectedSectio
   for (let i = potentialParents.length - 1; i >= 0; i--) {
     const parent = potentialParents[i];
     
-    // Compare the indices by order if available, otherwise by position in the array
-    if ((section.order !== undefined && parent.order !== undefined && parent.order < section.order) ||
-        bestParentIndex === -1) {
+    // Compare the indices by order if available
+    if (section.order !== undefined && parent.order !== undefined && parent.order < section.order) {
+      bestParentIndex = i;
+      break;
+    } else if (bestParentIndex === -1) {
+      // If no order is available, use position in the array as fallback
       bestParentIndex = i;
     }
   }
