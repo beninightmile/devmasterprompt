@@ -9,7 +9,7 @@ import {
   parseComplexDocument,
   parseMixedFormatSections,
   parseCombinedFormatSections
-} from './section-parsers';
+} from './parsers';
 import { matchWithDefaultSections } from './section-matcher';
 import { cleanupSectionName, mergeSections } from './section-utils';
 
