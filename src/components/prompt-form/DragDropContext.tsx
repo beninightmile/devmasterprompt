@@ -1,18 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 import { usePromptStore } from '@/store/promptStore';
-import { PromptSection } from '@/types/prompt';
 
-interface DragAndDropManagerProps {
-  children: (props: {
-    onDragStart: (id: string) => void;
-    onDragOver: (id: string) => void;
-    onDragEnd: () => void;
-    draggedSectionId: string | null;
-  }) => React.ReactNode;
+interface DragDropContextType {
+  draggedSectionId: string | null;
+  handleDragStart: (id: string) => void;
+  handleDragEnd: () => void;
+  handleDragOver: (id: string) => void;
 }
 
-const DragAndDropManager: React.FC<DragAndDropManagerProps> = ({ children }) => {
+const DragDropContext = createContext<DragDropContextType | undefined>(undefined);
+
+export const DragDropProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { sections, reorderSections } = usePromptStore();
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   
@@ -37,13 +36,23 @@ const DragAndDropManager: React.FC<DragAndDropManagerProps> = ({ children }) => 
       }
     }
   };
-
-  return children({
-    onDragStart: handleDragStart,
-    onDragOver: handleDragOver,
-    onDragEnd: handleDragEnd,
-    draggedSectionId
-  });
+  
+  return (
+    <DragDropContext.Provider value={{ 
+      draggedSectionId, 
+      handleDragStart, 
+      handleDragEnd, 
+      handleDragOver 
+    }}>
+      {children}
+    </DragDropContext.Provider>
+  );
 };
 
-export default DragAndDropManager;
+export const useDragDrop = () => {
+  const context = useContext(DragDropContext);
+  if (context === undefined) {
+    throw new Error('useDragDrop must be used within a DragDropProvider');
+  }
+  return context;
+};
