@@ -108,9 +108,38 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   };
   
   const handleImportSections = (uploadedSections: PromptSection[]) => {
-    // Logic for importing sections moved to the parent component
-    // Section management is handled directly by SectionList and the store
+    // Check if we have sections to import
+    if (!uploadedSections || uploadedSections.length === 0) {
+      toast({
+        title: "No sections to import",
+        description: "No valid sections were found in the uploaded content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add each uploaded section to the store
+    let importCount = 0;
+    uploadedSections.forEach(section => {
+      if (section.name && section.name.trim()) {
+        addSection({
+          id: section.id || crypto.randomUUID(),
+          name: section.name.trim(),
+          content: section.content || '',
+          isRequired: section.isRequired || false
+        });
+        importCount++;
+      }
+    });
+    
+    // Close the dialog and show success message
     setUploadDialogOpen(false);
+    
+    toast({
+      title: `${importCount} sections imported`,
+      description: `Successfully added ${importCount} sections to your prompt.`,
+      duration: 5000,
+    });
   };
   
   return (

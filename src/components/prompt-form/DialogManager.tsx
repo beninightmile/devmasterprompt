@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { PromptSection } from '@/types/prompt';
 import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
 import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
+import { PromptSection } from '@/types/prompt';
 
 interface DialogManagerProps {
   newSectionDialogOpen: boolean;
@@ -16,7 +16,7 @@ interface DialogManagerProps {
   onUploadDialogChange: (open: boolean) => void;
   onAddCustomSection: (sectionName: string) => void;
   onAddExistingSection: (template: any) => void;
-  onImportSections: (uploadedSections: PromptSection[]) => void;
+  onImportSections: (sections: PromptSection[]) => void;
 }
 
 const DialogManager: React.FC<DialogManagerProps> = ({
@@ -30,7 +30,7 @@ const DialogManager: React.FC<DialogManagerProps> = ({
   onUploadDialogChange,
   onAddCustomSection,
   onAddExistingSection,
-  onImportSections
+  onImportSections,
 }) => {
   return (
     <>
