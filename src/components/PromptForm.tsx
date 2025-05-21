@@ -81,28 +81,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     }
   };
   
-  const handleDragStart = (id: string) => {
-    setDraggedSectionId(id);
-  };
-  
-  const handleDragEnd = () => {
-    setDraggedSectionId(null);
-  };
-  
-  const handleDragOver = (id: string) => {
-    if (draggedSectionId && draggedSectionId !== id) {
-      const currentIds = sections.sort((a, b) => a.order - b.order).map(section => section.id);
-      const fromIndex = currentIds.indexOf(draggedSectionId);
-      const toIndex = currentIds.indexOf(id);
-      if (fromIndex !== -1 && toIndex !== -1) {
-        const newOrder = [...currentIds];
-        newOrder.splice(fromIndex, 1);
-        newOrder.splice(toIndex, 0, draggedSectionId);
-        reorderSections(newOrder);
-      }
-    }
-  };
-  
   const handleAddCustomSection = (sectionName: string) => {
     if (sectionName.trim()) {
       addSection({
@@ -153,56 +131,30 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   };
   
   const handleImportSections = (uploadedSections: PromptSection[]) => {
-    // Clean up section names to be more readable
-    const cleanedSections = uploadedSections.map(section => ({
-      ...section,
-      name: cleanupSectionName(section.name)
-    }));
-    
-    // Ask if user wants to merge with existing content or replace it
-    if (sections.filter(s => s.content.trim() !== '').length > 0 && cleanedSections.length > 0) {
-      // There's existing content, so confirm before replacing
-      const shouldMerge = window.confirm(
-        "Do you want to merge the uploaded content with your existing sections? " +
-        "Click OK to merge or Cancel to replace all existing content."
-      );
-      
-      if (shouldMerge) {
-        // Merge with existing content
-        const mergedSections = mergeSections(sections, cleanedSections);
-        
-        // Reset sections and add all merged ones
-        clearAll();
-        mergedSections.forEach(section => {
-          addSection(section);
-        });
-        
-        toast({
-          title: "Content merged",
-          description: `${cleanedSections.length} sections were successfully merged with existing content.`,
-        });
-      } else {
-        // Replace existing content
-        clearAll();
-        cleanedSections.forEach(section => {
-          addSection(section);
-        });
-        
-        toast({
-          title: "Content replaced",
-          description: `${cleanedSections.length} sections were imported, replacing previous content.`,
-        });
+    // Logic for importing sections moved to the parent component
+    // Section management is handled directly by SectionList and the store
+    setUploadDialogOpen(false);
+  };
+  
+  const handleDragStart = (id: string) => {
+    setDraggedSectionId(id);
+  };
+  
+  const handleDragEnd = () => {
+    setDraggedSectionId(null);
+  };
+  
+  const handleDragOver = (id: string) => {
+    if (draggedSectionId && draggedSectionId !== id) {
+      const currentIds = sections.sort((a, b) => a.order - b.order).map(section => section.id);
+      const fromIndex = currentIds.indexOf(draggedSectionId);
+      const toIndex = currentIds.indexOf(id);
+      if (fromIndex !== -1 && toIndex !== -1) {
+        const newOrder = [...currentIds];
+        newOrder.splice(fromIndex, 1);
+        newOrder.splice(toIndex, 0, draggedSectionId);
+        reorderSections(newOrder);
       }
-    } else {
-      // No existing content or no uploaded content, just add the sections
-      cleanedSections.forEach(section => {
-        addSection(section);
-      });
-      
-      toast({
-        title: "Content imported",
-        description: `${cleanedSections.length} sections were successfully imported.`,
-      });
     }
   };
   
@@ -222,6 +174,8 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         lastSaveTime={lastSaveTime}
         onAutoSaveToggle={setAutoSaveEnabled}
         onAutoSaveIntervalChange={setAutoSaveInterval}
+        onAutoSave={handleAutoSave}
+        templateName={templateName}
       />
 
       {/* Section list */}
