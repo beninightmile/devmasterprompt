@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
@@ -9,7 +10,6 @@ import SaveTemplateFormDialog from './SaveTemplateFormDialog';
 import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
 import SectionList from './SectionList';
 import DragAndDropManager from './DragAndDropManager';
-import PromptFormActions from './PromptFormActions';
 import { PromptSection } from '@/types/prompt';
 
 interface PromptFormProps {
@@ -151,17 +151,8 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         lastSaveTime={lastSaveTime}
         onAutoSaveToggle={setAutoSaveEnabled}
         onAutoSaveIntervalChange={setAutoSaveInterval}
-      />
-
-      <PromptFormActions
+        onAutoSave={handleAutoSave}
         templateName={templateName}
-        autoSaveEnabled={autoSaveEnabled}
-        lastSaveTime={lastSaveTime}
-        onTogglePreview={handleTogglePreview}
-        onOpenSaveDialog={handleOpenSaveDialog}
-        onOpenNewSectionDialog={() => setNewSectionDialogOpen(true)}
-        onOpenUploadDialog={handleOpenUploadDialog}
-        onClearAll={handleClearAll}
       />
 
       {/* Section list with drag and drop support */}

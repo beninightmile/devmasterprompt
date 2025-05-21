@@ -23,6 +23,8 @@ interface PromptFormHeaderProps {
   lastSaveTime: Date | null;
   onAutoSaveToggle: (enabled: boolean) => void;
   onAutoSaveIntervalChange: (minutes: number) => void;
+  onAutoSave: () => void;
+  templateName: string;
 }
 
 const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
@@ -37,10 +39,11 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
   autoSaveInterval,
   lastSaveTime,
   onAutoSaveToggle,
-  onAutoSaveIntervalChange
+  onAutoSaveIntervalChange,
+  onAutoSave,
+  templateName
 }) => {
   const {
-    templateName,
     setTemplateName,
     currentTemplateId
   } = usePromptStore();
@@ -89,10 +92,16 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
             <PlusCircle size={16} />
             <span>Add Section</span>
           </Button>
+
+          <Button variant="outline" className="flex items-center space-x-2" onClick={onAutoSave}
+            disabled={!autoSaveEnabled || !templateName}>
+            <Save size={16} />
+            <span>Save Now</span>
+          </Button>
           
           <Button variant="destructive" className="flex items-center space-x-2" onClick={onClearAll}>
             <Trash2 size={16} />
-            <span></span>
+            <span>Clear All</span>
           </Button>
         </div>
       </div>
