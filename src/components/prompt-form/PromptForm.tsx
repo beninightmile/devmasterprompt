@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
 import { autoSaveTemplate } from '@/services/template-service';
@@ -9,8 +9,11 @@ import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
 import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
 import SectionList from './SectionList';
-import DragAndDropManager from './DragAndDropManager';
+import { DragDropProvider } from './DragDropContext';
+import SectionManager from './SectionManager';
 import { PromptSection } from '@/types/prompt';
+import DialogManager from './DialogManager';
+import AutoSaveHandler from './AutoSaveHandler';
 
 interface PromptFormProps {
   onPreviewToggle?: (value: boolean) => void;
@@ -36,34 +39,9 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { toast } = useToast();
-  const autoSaveTimerRef = useRef<number | null>(null);
 
   // Generate the prompt text for token counting
   const promptText = generatePromptText(sections);
-  
-  // Setup auto-save
-  useEffect(() => {
-    // Clear existing timer
-    if (autoSaveTimerRef.current) {
-      window.clearInterval(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = null;
-    }
-    
-    // Set up new timer if auto-save is enabled
-    if (autoSaveEnabled && templateName.trim()) {
-      const intervalMs = autoSaveInterval * 60 * 1000; // Convert minutes to milliseconds
-      autoSaveTimerRef.current = window.setInterval(() => {
-        handleAutoSave();
-      }, intervalMs);
-    }
-    
-    // Clean up on unmount
-    return () => {
-      if (autoSaveTimerRef.current) {
-        window.clearInterval(autoSaveTimerRef.current);
-      }
-    };
-  }, [autoSaveEnabled, autoSaveInterval, templateName]);
   
   const handleAutoSave = () => {
     if (!templateName.trim()) {
@@ -137,6 +115,9 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Auto-save handler (no UI) */}
+      <AutoSaveHandler onAutoSave={handleAutoSave} />
+      
       {/* Header with template name, preview toggle, and action buttons */}
       <PromptFormHeader 
         isPreviewMode={isPreviewMode}
@@ -156,36 +137,22 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
       />
 
       {/* Section list with drag and drop support */}
-      <DragAndDropManager>
-        {({ onDragStart, onDragOver, onDragEnd, draggedSectionId }) => (
-          <SectionList 
-            sections={sections}
-            onDragStart={onDragStart}
-            onDragOver={onDragOver}
-            onDragEnd={onDragEnd}
-            draggedSectionId={draggedSectionId}
-          />
-        )}
-      </DragAndDropManager>
+      <DragDropProvider>
+        <SectionManager sections={sections} />
+      </DragDropProvider>
 
       {/* Dialogs */}
-      <NewSectionDialog 
-        open={newSectionDialogOpen}
-        onOpenChange={setNewSectionDialogOpen}
+      <DialogManager
+        newSectionDialogOpen={newSectionDialogOpen}
+        saveTemplateDialogOpen={saveTemplateDialogOpen}
+        uploadDialogOpen={uploadDialogOpen}
+        sections={sections}
+        templateName={templateName}
+        onNewSectionDialogChange={setNewSectionDialogOpen}
+        onSaveTemplateDialogChange={setSaveTemplateDialogOpen}
+        onUploadDialogChange={setUploadDialogOpen}
         onAddCustomSection={handleAddCustomSection}
         onAddExistingSection={handleAddExistingSection}
-        existingSections={sections.map(section => section.id)}
-      />
-
-      <SaveTemplateFormDialog 
-        open={saveTemplateDialogOpen}
-        onOpenChange={setSaveTemplateDialogOpen}
-        initialName={templateName}
-      />
-      
-      <UploadPromptDialog
-        open={uploadDialogOpen}
-        onOpenChange={setUploadDialogOpen}
         onImportSections={handleImportSections}
       />
     </div>
