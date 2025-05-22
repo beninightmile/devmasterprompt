@@ -12,7 +12,7 @@ import { usePromptStore } from '@/store/promptStore';
 interface AutoSaveSettingsProps {
   enabled: boolean;
   interval: number;
-  lastSave: Date | null;
+  lastSaveTime: Date | null; // Changed from lastSave to lastSaveTime to match usage in PromptFormHeader
   onToggle: (enabled: boolean) => void;
   onIntervalChange: (minutes: number) => void;
 }
@@ -20,7 +20,7 @@ interface AutoSaveSettingsProps {
 const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
   enabled,
   interval,
-  lastSave,
+  lastSaveTime, // Changed from lastSave to lastSaveTime
   onToggle,
   onIntervalChange,
 }) => {
