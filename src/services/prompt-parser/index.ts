@@ -212,5 +212,18 @@ export function createDefaultSectionForArea(areaId: string, areaName: string) {
   };
 }
 
-export { matchWithDefaultSections, cleanupSectionName, mergeSections };
+export { 
+  parseMarkdownHeadings,
+  parseNumberedSections,
+  parsePrefixedSections,
+  parseColonSeparatedSections,
+  parseParagraphs,
+  parseComplexDocument,
+  parseMixedFormatSections,
+  parseCombinedFormatSections,
+  enhanceHierarchicalStructure,
+  matchWithDefaultSections,
+  cleanupSectionName,
+  mergeSections
+};
 export type { DetectedSection };
