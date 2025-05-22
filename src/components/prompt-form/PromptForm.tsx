@@ -7,13 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 import PromptFormHeader from './PromptFormHeader';
 import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
-import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
+import UploadContentDialog from './upload-dialog/UploadContentDialog';
 import SectionList from './SectionList';
 import { DragDropProvider } from './DragDropContext';
 import SectionManager from './SectionManager';
 import { PromptSection } from '@/types/prompt';
 import DialogManager from './DialogManager';
 import AutoSaveHandler from './AutoSaveHandler';
+import SoftwareTemplateDialog from './SoftwareTemplateDialog';
 
 interface PromptFormProps {
   onPreviewToggle?: (value: boolean) => void;
@@ -38,6 +39,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [softwareTemplateDialogOpen, setSoftwareTemplateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Generate the prompt text for token counting
@@ -107,6 +109,10 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     setUploadDialogOpen(true);
   };
   
+  const handleOpenSoftwareTemplateDialog = () => {
+    setSoftwareTemplateDialogOpen(true);
+  };
+  
   const handleImportSections = (uploadedSections: PromptSection[]) => {
     // Check if we have sections to import
     if (!uploadedSections || uploadedSections.length === 0) {
@@ -141,6 +147,36 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
       duration: 5000,
     });
   };
+
+  const handleApplySoftwareTemplate = (templateSections: PromptSection[]) => {
+    if (sections.length > 0) {
+      const confirmApply = window.confirm(
+        "Applying a software template will replace your current sections. Do you want to continue?"
+      );
+      
+      if (!confirmApply) {
+        return;
+      }
+      
+      clearAll();
+    }
+    
+    // Add each section from the template
+    templateSections.forEach(section => {
+      addSection({
+        id: crypto.randomUUID(),
+        name: section.name,
+        content: section.content,
+        isRequired: section.isRequired
+      });
+    });
+    
+    toast({
+      title: "Template applied",
+      description: `Successfully applied the software template with ${templateSections.length} sections.`,
+      duration: 5000,
+    });
+  };
   
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -155,6 +191,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         onOpenSaveDialog={handleOpenSaveDialog}
         onOpenNewSectionDialog={() => setNewSectionDialogOpen(true)}
         onOpenUploadDialog={handleOpenUploadDialog}
+        onOpenSoftwareTemplateDialog={handleOpenSoftwareTemplateDialog}
         onClearAll={handleClearAll}
         autoSaveEnabled={autoSaveEnabled}
         autoSaveInterval={autoSaveInterval}
@@ -175,14 +212,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         newSectionDialogOpen={newSectionDialogOpen}
         saveTemplateDialogOpen={saveTemplateDialogOpen}
         uploadDialogOpen={uploadDialogOpen}
+        softwareTemplateDialogOpen={softwareTemplateDialogOpen}
         sections={sections}
         templateName={templateName}
         onNewSectionDialogChange={setNewSectionDialogOpen}
         onSaveTemplateDialogChange={setSaveTemplateDialogOpen}
         onUploadDialogChange={setUploadDialogOpen}
+        onSoftwareTemplateDialogChange={setSoftwareTemplateDialogOpen}
         onAddCustomSection={handleAddCustomSection}
         onAddExistingSection={handleAddExistingSection}
         onImportSections={handleImportSections}
+        onApplySoftwareTemplate={handleApplySoftwareTemplate}
       />
     </div>
   );

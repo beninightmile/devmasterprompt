@@ -12,14 +12,16 @@ import { usePromptStore } from '@/store/promptStore';
 interface AutoSaveSettingsProps {
   enabled: boolean;
   interval: number;
-  onEnabledChange: (enabled: boolean) => void;
+  lastSave: Date | null;
+  onToggle: (enabled: boolean) => void;
   onIntervalChange: (minutes: number) => void;
 }
 
 const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
   enabled,
   interval,
-  onEnabledChange,
+  lastSave,
+  onToggle,
   onIntervalChange,
 }) => {
   const [open, setOpen] = useState(false);
@@ -60,7 +62,7 @@ const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
             <Switch 
               id="auto-save-enabled" 
               checked={enabled} 
-              onCheckedChange={onEnabledChange} 
+              onCheckedChange={onToggle} 
             />
           </div>
           

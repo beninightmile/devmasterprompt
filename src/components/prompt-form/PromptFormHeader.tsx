@@ -3,7 +3,6 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import AutoSaveSettings from './AutoSaveSettings';
 import TokenCounter from '../TokenCounter';
 import { usePromptStore } from '@/store/promptStore';
@@ -82,27 +81,17 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 justify-end">
-        <Button variant="outline" size="sm" onClick={onOpenSaveDialog}>
-          Save Master Prompt
-        </Button>
-        <Button variant="outline" size="sm" onClick={onOpenNewSectionDialog}>
-          Add Section
-        </Button>
-        <Button variant="outline" size="sm" onClick={onOpenSoftwareTemplateDialog}>
-          Software Templates
-        </Button>
-        <Button variant="outline" size="sm" onClick={onOpenUploadDialog}>
-          Import Content
-        </Button>
-        <Button variant="outline" size="sm" onClick={onAutoSave}
-          disabled={!autoSaveEnabled || !templateName}>
-          Save Now
-        </Button>
-        <Button variant="outline" size="sm" onClick={onClearAll}>
-          Clear All
-        </Button>
-      </div>
+      <PromptFormActions
+        templateName={templateName}
+        autoSaveEnabled={autoSaveEnabled}
+        lastSaveTime={lastSaveTime}
+        onTogglePreview={onPreviewToggle}
+        onOpenSaveDialog={onOpenSaveDialog}
+        onOpenNewSectionDialog={onOpenNewSectionDialog}
+        onOpenUploadDialog={onOpenUploadDialog}
+        onOpenSoftwareTemplateDialog={onOpenSoftwareTemplateDialog}
+        onClearAll={onClearAll}
+      />
     </div>
   );
 };
