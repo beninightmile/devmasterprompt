@@ -1,111 +1,110 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Save, Eye, Trash2, Clock, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import TokenCounter from '@/components/TokenCounter';
-import { usePromptStore } from '@/store/promptStore';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import AutoSaveSettings from './AutoSaveSettings';
-import { format } from 'date-fns';
+import TokenCounter from '../TokenCounter';
+import { usePromptStore } from '@/store/promptStore';
+import PromptFormActions from './PromptFormActions';
 
 interface PromptFormHeaderProps {
   isPreviewMode: boolean;
-  onPreviewToggle: (value: boolean) => void;
   promptText: string;
-  onOpenSaveDialog: () => void;
-  onOpenNewSectionDialog: () => void;
-  onClearAll: () => void;
-  onOpenUploadDialog: () => void;
+  templateName: string;
   autoSaveEnabled: boolean;
   autoSaveInterval: number;
   lastSaveTime: Date | null;
+  onPreviewToggle: (value: boolean) => void;
+  onOpenSaveDialog: () => void;
+  onOpenNewSectionDialog: () => void;
+  onOpenUploadDialog: () => void;
+  onOpenSoftwareTemplateDialog: () => void;
+  onClearAll: () => void;
   onAutoSaveToggle: (enabled: boolean) => void;
   onAutoSaveIntervalChange: (minutes: number) => void;
   onAutoSave: () => void;
-  templateName: string;
 }
 
 const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
   isPreviewMode,
-  onPreviewToggle,
   promptText,
-  onOpenSaveDialog,
-  onOpenNewSectionDialog,
-  onClearAll,
-  onOpenUploadDialog,
+  templateName,
   autoSaveEnabled,
   autoSaveInterval,
   lastSaveTime,
+  onPreviewToggle,
+  onOpenSaveDialog,
+  onOpenNewSectionDialog,
+  onOpenUploadDialog,
+  onOpenSoftwareTemplateDialog,
+  onClearAll,
   onAutoSaveToggle,
   onAutoSaveIntervalChange,
   onAutoSave,
-  templateName
 }) => {
-  const {
-    setTemplateName,
-    currentTemplateId
-  } = usePromptStore();
+  const { setTemplateName } = usePromptStore();
 
-  return <div className="flex flex-col gap-4 mb-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center flex-1">
-          <Input placeholder="Template Name" value={templateName} onChange={e => setTemplateName(e.target.value)} className="mr-2 max-w-md" />
-          <div className="text-sm text-muted-foreground flex items-center ml-2">
-            <span className="mr-2">Total:</span>
-            <TokenCounter text={promptText} />
-          </div>
+  return (
+    <div className="mb-6 space-y-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
+        <div className="flex-1 min-w-0">
+          <Input
+            placeholder="Master Prompt Name"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            className="text-lg font-semibold"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2 shrink-0">
+          <Label htmlFor="preview-mode">Preview Mode</Label>
+          <Switch
+            id="preview-mode"
+            checked={isPreviewMode}
+            onCheckedChange={onPreviewToggle}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap justify-between gap-2">
+        <div>
+          <TokenCounter text={promptText} />
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2" 
-            onClick={onOpenUploadDialog}
-          >
-            <Upload size={16} />
-            <span>Upload Prompt</span>
-          </Button>
-          
-          <AutoSaveSettings enabled={autoSaveEnabled} interval={autoSaveInterval} onEnabledChange={onAutoSaveToggle} onIntervalChange={onAutoSaveIntervalChange} />
-          {lastSaveTime && <span className="text-xs text-muted-foreground ml-2">
-              Last saved: {format(lastSaveTime, 'HH:mm:ss')}
-            </span>}
-        </div>
+        <AutoSaveSettings 
+          enabled={autoSaveEnabled}
+          interval={autoSaveInterval} 
+          lastSave={lastSaveTime}
+          onToggle={onAutoSaveToggle}
+          onIntervalChange={onAutoSaveIntervalChange} 
+        />
       </div>
-      
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">DevMasterPrompt</h1>
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="preview-mode" className="cursor-pointer">Preview</Label>
-            <Switch id="preview-mode" checked={isPreviewMode} onCheckedChange={onPreviewToggle} />
-          </div>
-          
-          <Button variant="outline" className="flex items-center space-x-2" onClick={onOpenSaveDialog}>
-            <Save size={16} />
-            <span>{currentTemplateId ? 'Update Template' : 'Save Template'}</span>
-          </Button>
-          
-          <Button variant="outline" className="flex items-center space-x-2" onClick={onOpenNewSectionDialog}>
-            <PlusCircle size={16} />
-            <span>Add Section</span>
-          </Button>
 
-          <Button variant="outline" className="flex items-center space-x-2" onClick={onAutoSave}
-            disabled={!autoSaveEnabled || !templateName}>
-            <Save size={16} />
-            <span>Save Now</span>
-          </Button>
-          
-          <Button variant="destructive" className="flex items-center space-x-2" onClick={onClearAll}>
-            <Trash2 size={16} />
-            <span>Clear All</span>
-          </Button>
-        </div>
+      <div className="flex flex-wrap gap-2 justify-end">
+        <Button variant="outline" size="sm" onClick={onOpenSaveDialog}>
+          Save Master Prompt
+        </Button>
+        <Button variant="outline" size="sm" onClick={onOpenNewSectionDialog}>
+          Add Section
+        </Button>
+        <Button variant="outline" size="sm" onClick={onOpenSoftwareTemplateDialog}>
+          Software Templates
+        </Button>
+        <Button variant="outline" size="sm" onClick={onOpenUploadDialog}>
+          Import Content
+        </Button>
+        <Button variant="outline" size="sm" onClick={onAutoSave}
+          disabled={!autoSaveEnabled || !templateName}>
+          Save Now
+        </Button>
+        <Button variant="outline" size="sm" onClick={onClearAll}>
+          Clear All
+        </Button>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default PromptFormHeader;

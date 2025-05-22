@@ -34,6 +34,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [softwareTemplateDialogOpen, setSoftwareTemplateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Generate the prompt text for token counting
@@ -96,9 +97,73 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   };
   
   const handleImportSections = (uploadedSections: PromptSection[]) => {
-    // Logic for importing sections moved to the parent component
-    // Section management is handled directly by SectionList and the store
+    // Check if we have sections to import
+    if (!uploadedSections || uploadedSections.length === 0) {
+      toast({
+        title: "No sections to import",
+        description: "No valid sections were found in the uploaded content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add each uploaded section to the store
+    let importCount = 0;
+    uploadedSections.forEach(section => {
+      if (section.name && section.name.trim()) {
+        // We always add a section with a new UUID to avoid collisions
+        addSection({
+          id: crypto.randomUUID(), // Generate a new ID for each section
+          name: section.name.trim(),
+          content: section.content || '',
+          isRequired: section.isRequired || false
+        });
+        importCount++;
+      }
+    });
+    
+    // Close the dialog and show success message
     setUploadDialogOpen(false);
+    
+    toast({
+      title: `${importCount} sections imported`,
+      description: `Successfully added ${importCount} sections to your master prompt.`,
+      duration: 5000,
+    });
+  };
+
+  const handleApplySoftwareTemplate = (templateSections: PromptSection[]) => {
+    if (sections.length > 0) {
+      const confirmApply = window.confirm(
+        "Applying a software template will replace your current sections. Do you want to continue?"
+      );
+      
+      if (!confirmApply) {
+        return;
+      }
+      
+      clearAll();
+    }
+    
+    // Add each section from the template
+    templateSections.forEach(section => {
+      addSection({
+        id: crypto.randomUUID(),
+        name: section.name,
+        content: section.content,
+        isRequired: section.isRequired
+      });
+    });
+    
+    toast({
+      title: "Template applied",
+      description: `Successfully applied the software template with ${templateSections.length} sections.`,
+      duration: 5000,
+    });
+  };
+
+  const handleOpenSoftwareTemplateDialog = () => {
+    setSoftwareTemplateDialogOpen(true);
   };
   
   return (
@@ -122,6 +187,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         onAutoSaveIntervalChange={setAutoSaveInterval}
         onAutoSave={handleAutoSave}
         templateName={templateName}
+        onOpenSoftwareTemplateDialog={handleOpenSoftwareTemplateDialog}
       />
 
       {/* Section list with drag and drop support */}
@@ -134,14 +200,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         newSectionDialogOpen={newSectionDialogOpen}
         saveTemplateDialogOpen={saveTemplateDialogOpen}
         uploadDialogOpen={uploadDialogOpen}
+        softwareTemplateDialogOpen={softwareTemplateDialogOpen}
         sections={sections}
         templateName={templateName}
         onNewSectionDialogChange={setNewSectionDialogOpen}
         onSaveTemplateDialogChange={setSaveTemplateDialogOpen}
         onUploadDialogChange={setUploadDialogOpen}
+        onSoftwareTemplateDialogChange={setSoftwareTemplateDialogOpen}
         onAddCustomSection={handleAddCustomSection}
         onAddExistingSection={handleAddExistingSection}
         onImportSections={handleImportSections}
+        onApplySoftwareTemplate={handleApplySoftwareTemplate}
       />
     </div>
   );

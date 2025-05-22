@@ -12,6 +12,7 @@ interface PromptFormActionsProps {
   onOpenSaveDialog: () => void;
   onOpenNewSectionDialog: () => void;
   onOpenUploadDialog: () => void;
+  onOpenSoftwareTemplateDialog: () => void;
   onClearAll: () => void;
 }
 
@@ -23,6 +24,7 @@ const PromptFormActions: React.FC<PromptFormActionsProps> = ({
   onOpenSaveDialog,
   onOpenNewSectionDialog,
   onOpenUploadDialog,
+  onOpenSoftwareTemplateDialog,
   onClearAll,
 }) => {
   const { toast } = useToast();
@@ -31,7 +33,7 @@ const PromptFormActions: React.FC<PromptFormActionsProps> = ({
     if (!templateName.trim()) {
       toast({
         title: "Cannot save",
-        description: "Please provide a template name first.",
+        description: "Please provide a master prompt name first.",
         variant: "destructive"
       });
       return;
@@ -53,13 +55,16 @@ const PromptFormActions: React.FC<PromptFormActionsProps> = ({
         Preview
       </Button>
       <Button variant="outline" size="sm" onClick={onOpenSaveDialog}>
-        Save Template
+        Save Master Prompt
       </Button>
       <Button variant="outline" size="sm" onClick={onOpenNewSectionDialog}>
         Add Section
       </Button>
+      <Button variant="outline" size="sm" onClick={onOpenSoftwareTemplateDialog}>
+        Software Templates
+      </Button>
       <Button variant="outline" size="sm" onClick={onOpenUploadDialog}>
-        Import Text
+        Import Content
       </Button>
       <Button variant="outline" size="sm" onClick={handleAutoSave}
         disabled={!autoSaveEnabled || !templateName}>

@@ -2,35 +2,42 @@
 import React from 'react';
 import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
-import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
+import UploadContentDialog from './upload-dialog/UploadContentDialog';
+import SoftwareTemplateDialog from './SoftwareTemplateDialog';
 import { PromptSection } from '@/types/prompt';
 
 interface DialogManagerProps {
   newSectionDialogOpen: boolean;
   saveTemplateDialogOpen: boolean;
   uploadDialogOpen: boolean;
+  softwareTemplateDialogOpen: boolean;
   sections: PromptSection[];
   templateName: string;
   onNewSectionDialogChange: (open: boolean) => void;
   onSaveTemplateDialogChange: (open: boolean) => void;
   onUploadDialogChange: (open: boolean) => void;
+  onSoftwareTemplateDialogChange: (open: boolean) => void;
   onAddCustomSection: (sectionName: string) => void;
   onAddExistingSection: (template: any) => void;
   onImportSections: (sections: PromptSection[]) => void;
+  onApplySoftwareTemplate: (sections: PromptSection[]) => void;
 }
 
 const DialogManager: React.FC<DialogManagerProps> = ({
   newSectionDialogOpen,
   saveTemplateDialogOpen,
   uploadDialogOpen,
+  softwareTemplateDialogOpen,
   sections,
   templateName,
   onNewSectionDialogChange,
   onSaveTemplateDialogChange,
   onUploadDialogChange,
+  onSoftwareTemplateDialogChange,
   onAddCustomSection,
   onAddExistingSection,
   onImportSections,
+  onApplySoftwareTemplate,
 }) => {
   return (
     <>
@@ -48,10 +55,16 @@ const DialogManager: React.FC<DialogManagerProps> = ({
         initialName={templateName}
       />
       
-      <UploadPromptDialog
+      <UploadContentDialog
         open={uploadDialogOpen}
         onOpenChange={onUploadDialogChange}
         onImportSections={onImportSections}
+      />
+
+      <SoftwareTemplateDialog
+        open={softwareTemplateDialogOpen}
+        onOpenChange={onSoftwareTemplateDialogChange}
+        onSelectTemplate={onApplySoftwareTemplate}
       />
     </>
   );
