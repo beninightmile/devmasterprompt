@@ -7,6 +7,7 @@ export interface PromptSection {
   isRequired: boolean;
   level?: number;     // Hierarchical level for nested display
   parentId?: string;  // Reference to parent section for hierarchy
+  isArea?: boolean;   // Indicates if this section is an area
 }
 
 export interface PromptTemplate {

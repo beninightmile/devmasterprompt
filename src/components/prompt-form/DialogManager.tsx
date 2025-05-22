@@ -17,7 +17,7 @@ interface DialogManagerProps {
   onSaveTemplateDialogChange: (open: boolean) => void;
   onUploadDialogChange: (open: boolean) => void;
   onSoftwareTemplateDialogChange: (open: boolean) => void;
-  onAddCustomSection: (sectionName: string) => void;
+  onAddCustomSection: (sectionName: string, areaId?: string) => void;
   onAddExistingSection: (template: any) => void;
   onImportSections: (sections: PromptSection[]) => void;
   onApplySoftwareTemplate: (sections: PromptSection[]) => void;
@@ -39,6 +39,9 @@ const DialogManager: React.FC<DialogManagerProps> = ({
   onImportSections,
   onApplySoftwareTemplate,
 }) => {
+  // Filter out areas
+  const areas = sections.filter(section => section.isArea);
+  
   return (
     <>
       <NewSectionDialog 
@@ -47,6 +50,7 @@ const DialogManager: React.FC<DialogManagerProps> = ({
         onAddCustomSection={onAddCustomSection}
         onAddExistingSection={onAddExistingSection}
         existingSections={sections.map(section => section.id)}
+        areas={areas}
       />
 
       <SaveTemplateFormDialog 

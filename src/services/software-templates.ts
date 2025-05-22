@@ -1,5 +1,6 @@
 
 import { PromptSection } from '@/types/prompt';
+import { DEFAULT_AREAS } from './prompt-parser';
 
 // Define the types of software templates available
 export type SoftwareTemplateType = 
@@ -20,229 +21,267 @@ export interface SoftwareTemplate {
   complexity: 'low' | 'medium' | 'high' | 'enterprise';
   estimatedTime: string;  // "3-5 days", "2-4 weeks", etc.
   type: SoftwareTemplateType;
-  sections: Array<Omit<PromptSection, 'id' | 'order'>>;
+  sections: PromptSection[];
 }
 
-// Collection of predefined software templates
+// Helper function to create an area with children
+const createTemplateArea = (areaProps: {
+  id: string;
+  name: string;
+  content?: string;
+  order: number;
+  children?: Array<{
+    name: string;
+    content: string;
+    isRequired?: boolean;
+  }>;
+}): PromptSection[] => {
+  const { id, name, content = '', order, children = [] } = areaProps;
+  
+  // Create the area
+  const area: PromptSection = {
+    id,
+    name,
+    content,
+    order,
+    isRequired: false,
+    level: 1,
+    isArea: true
+  };
+  
+  // Create child sections
+  const childSections = children.map((child, index) => ({
+    id: `${id}-child-${index}`,
+    name: child.name,
+    content: child.content,
+    order: order + index + 1,
+    isRequired: child.isRequired || false,
+    level: 2,
+    parentId: id
+  }));
+  
+  return [area, ...childSections];
+};
+
+// Collection of predefined software templates using the hierarchical structure
 export const softwareTemplates: SoftwareTemplate[] = [
   {
     id: 'web_simple',
-    name: 'Simple Web Application',
-    description: 'Basic web application with a few pages and simple functionality.',
+    name: 'Einfache Web-Anwendung',
+    description: 'Grundlegende Webanwendung mit einigen Seiten und einfacher Funktionalität.',
     complexity: 'low',
-    estimatedTime: '1-3 days',
+    estimatedTime: '1-3 Tage',
     type: 'web_app_simple',
     sections: [
-      {
-        name: 'Project Name',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Project Description',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Core Requirements',
-        content: 'List the essential features and functionality your application needs.',
-        isRequired: true,
-      },
-      {
-        name: 'UI/UX Guidelines',
-        content: 'Describe the look and feel you want for your application.',
-        isRequired: false,
-      },
-      {
-        name: 'Technologies',
-        content: 'Preferred technologies or frameworks (e.g. React, Vue, etc.)',
-        isRequired: false,
-      }
+      // Tech Stack Area
+      ...createTemplateArea({
+        id: 'core_1',
+        name: 'Technologie-Stack & Tooling',
+        order: 10,
+        children: [
+          {
+            name: 'Framework & Sprache',
+            content: 'React mit TypeScript',
+            isRequired: true
+          },
+          {
+            name: 'Styling',
+            content: 'Tailwind CSS',
+            isRequired: true
+          },
+          {
+            name: 'UI-Komponenten',
+            content: 'Shadcn UI',
+            isRequired: false
+          }
+        ]
+      }),
+      
+      // Architecture Area
+      ...createTemplateArea({
+        id: 'core_2',
+        name: 'Projektstruktur & Architekturprinzipien',
+        order: 20,
+        children: [
+          {
+            name: 'Dateisystem-Organisation',
+            content: 'Feature-basierte Ordnerstruktur',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // UI/UX Area
+      ...createTemplateArea({
+        id: 'core_3',
+        name: 'UI-System & Design-Konventionen',
+        order: 30,
+        children: [
+          {
+            name: 'Design-System',
+            content: 'Einheitliches Farb- und Typografieschema',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // Core Features Area
+      ...createTemplateArea({
+        id: 'core_6',
+        name: 'Kernmodule & Funktionalitäten',
+        order: 60,
+        children: [
+          {
+            name: 'Hauptfunktionen',
+            content: 'Liste der Hauptfunktionen der Anwendung',
+            isRequired: true
+          }
+        ]
+      })
     ]
   },
   {
     id: 'web_complex',
-    name: 'Complex Web Application',
-    description: 'Advanced web application with multiple features, user authentication, and data management.',
+    name: 'Komplexe Web-Anwendung',
+    description: 'Fortgeschrittene Webanwendung mit mehreren Funktionen, Benutzerauthentifizierung und Datenverwaltung.',
     complexity: 'medium',
-    estimatedTime: '1-3 weeks',
+    estimatedTime: '1-3 Wochen',
     type: 'web_app_complex',
     sections: [
-      {
-        name: 'Project Name',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Project Description',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Core Requirements',
-        content: 'List the essential features and functionality your application needs.',
-        isRequired: true,
-      },
-      {
-        name: 'Authentication',
-        content: 'What type of authentication do you need? (email/password, social auth, etc.)',
-        isRequired: true,
-      },
-      {
-        name: 'Data Models',
-        content: 'Describe the main entities and their relationships in your application.',
-        isRequired: true,
-      },
-      {
-        name: 'UI/UX Guidelines',
-        content: 'Describe the look and feel you want for your application.',
-        isRequired: false,
-      },
-      {
-        name: 'Technologies',
-        content: 'Preferred technologies or frameworks (e.g. React, Next.js, etc.)',
-        isRequired: false,
-      },
-      {
-        name: 'User Roles & Permissions',
-        content: 'Define different user types and what they should be able to access.',
-        isRequired: false,
-      }
+      // Tech Stack Area
+      ...createTemplateArea({
+        id: 'core_1',
+        name: 'Technologie-Stack & Tooling',
+        order: 10,
+        children: [
+          {
+            name: 'Framework & Sprache',
+            content: 'React mit TypeScript',
+            isRequired: true
+          },
+          {
+            name: 'Styling',
+            content: 'Tailwind CSS mit Theme-Anpassungen',
+            isRequired: true
+          },
+          {
+            name: 'State Management',
+            content: 'Zustand für globalen Zustand, React Query für Server-State',
+            isRequired: true
+          },
+          {
+            name: 'Backend-Integration',
+            content: 'RESTful API mit Axios',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // Architecture Area
+      ...createTemplateArea({
+        id: 'core_2',
+        name: 'Projektstruktur & Architekturprinzipien',
+        order: 20,
+        children: [
+          {
+            name: 'Architekturmuster',
+            content: 'Feature-basierte Architektur mit klarer Trennung von Zustand und UI',
+            isRequired: true
+          },
+          {
+            name: 'Code-Organisation',
+            content: 'Modularisierung nach Funktionen',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // Security Area
+      ...createTemplateArea({
+        id: 'core_4',
+        name: 'Security, Authentifizierung & Rollenmanagement',
+        order: 40,
+        children: [
+          {
+            name: 'Authentifizierungsstrategie',
+            content: 'JWT-basierte Authentifizierung',
+            isRequired: true
+          },
+          {
+            name: 'Benutzerrollen',
+            content: 'Beschreibung der Benutzerrollen und Berechtigungen',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // Routing Area
+      ...createTemplateArea({
+        id: 'core_5',
+        name: 'Standard-Routing & Seitenstruktur',
+        order: 50,
+        children: [
+          {
+            name: 'Routendefinitionen',
+            content: 'Definition der Hauptrouten und Seitenübergänge',
+            isRequired: true
+          },
+          {
+            name: 'Geschützte Routen',
+            content: 'Implementation von geschützten Routen basierend auf Benutzerrollen',
+            isRequired: true
+          }
+        ]
+      }),
+      
+      // Features Area
+      ...createTemplateArea({
+        id: 'core_6',
+        name: 'Kernmodule & Funktionalitäten',
+        order: 60,
+        children: [
+          {
+            name: 'Benutzerverwaltung',
+            content: 'Funktionen für Benutzerregistrierung, Login, Profilverwaltung',
+            isRequired: true
+          },
+          {
+            name: 'Datenintegrationen',
+            content: 'Beschreibung der Datenquellen und Integrationen',
+            isRequired: true
+          }
+        ]
+      })
     ]
   },
   {
     id: 'fullstack',
-    name: 'Full-stack Application',
-    description: 'Complete application with frontend, backend, database, and advanced features.',
+    name: 'Full-Stack-Anwendung',
+    description: 'Komplette Anwendung mit Frontend, Backend, Datenbank und erweiterten Funktionen.',
     complexity: 'high',
-    estimatedTime: '3-6 weeks',
+    estimatedTime: '3-6 Wochen',
     type: 'fullstack_application',
     sections: [
-      {
-        name: 'Project Name',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Project Description',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Frontend Requirements',
-        content: 'Describe the user interface and user experience requirements.',
-        isRequired: true,
-      },
-      {
-        name: 'Backend Requirements',
-        content: 'Describe the server-side functionality and API requirements.',
-        isRequired: true,
-      },
-      {
-        name: 'Database Design',
-        content: 'Describe the data structure and relationships.',
-        isRequired: true,
-      },
-      {
-        name: 'Authentication & Authorization',
-        content: 'Describe the authentication method and user permission system.',
-        isRequired: true,
-      },
-      {
-        name: 'API Specifications',
-        content: 'List and describe the API endpoints needed.',
-        isRequired: false,
-      },
-      {
-        name: 'Deployment Requirements',
-        content: 'Describe how and where the application should be deployed.',
-        isRequired: false,
-      },
-      {
-        name: 'Technologies',
-        content: 'Specify preferred technologies for frontend, backend, and database.',
-        isRequired: false,
-      },
-      {
-        name: 'Third-party Integrations',
-        content: 'List any external services or APIs you want to integrate.',
-        isRequired: false,
-      }
-    ]
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise System',
-    description: 'Large-scale application with complex business logic, multiple integrations, and high scalability requirements.',
-    complexity: 'enterprise',
-    estimatedTime: '2-6 months',
-    type: 'enterprise_system',
-    sections: [
-      {
-        name: 'Project Name',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Project Description',
-        content: '',
-        isRequired: true,
-      },
-      {
-        name: 'Business Domain',
-        content: 'Describe the business domain and core business processes.',
-        isRequired: true,
-      },
-      {
-        name: 'System Architecture',
-        content: 'Describe the overall system architecture and design patterns.',
-        isRequired: true,
-      },
-      {
-        name: 'Authentication & Security',
-        content: 'Describe security requirements, authentication methods, and authorization model.',
-        isRequired: true,
-      },
-      {
-        name: 'Data Models & Database',
-        content: 'Define the data models, relationships, and database requirements.',
-        isRequired: true,
-      },
-      {
-        name: 'Frontend Requirements',
-        content: 'Describe the user interface and experience requirements across different user roles.',
-        isRequired: true,
-      },
-      {
-        name: 'Backend Services',
-        content: 'Define the backend services, APIs, and their responsibilities.',
-        isRequired: true,
-      },
-      {
-        name: 'Integration Requirements',
-        content: 'List all external systems and how they should be integrated.',
-        isRequired: true,
-      },
-      {
-        name: 'Performance & Scalability',
-        content: 'Define performance expectations and scalability requirements.',
-        isRequired: true,
-      },
-      {
-        name: 'Deployment & DevOps',
-        content: 'Describe the deployment strategy, environments, and CI/CD requirements.',
-        isRequired: false,
-      },
-      {
-        name: 'Monitoring & Observability',
-        content: 'Define monitoring, logging, and alerting requirements.',
-        isRequired: false,
-      },
-      {
-        name: 'Compliance & Regulations',
-        content: 'List any regulatory or compliance requirements the system must meet.',
-        isRequired: false,
-      }
+      ...DEFAULT_AREAS.flatMap((area, index) => {
+        // Create example sections for each area
+        return createTemplateArea({
+          id: `template-${area.id}`,
+          name: area.name,
+          order: (index + 1) * 10,
+          children: [
+            {
+              name: `${area.name} - Hauptsektion`,
+              content: area.defaultContent,
+              isRequired: true
+            },
+            {
+              name: `${area.name} - Details`,
+              content: 'Weitere Details zu diesem Bereich...',
+              isRequired: false
+            }
+          ]
+        });
+      })
     ]
   }
 ];
@@ -266,10 +305,7 @@ export function getAllSoftwareTemplates(): SoftwareTemplate[] {
  */
 export function convertTemplateToSections(template: SoftwareTemplate): PromptSection[] {
   return template.sections.map(section => ({
-    id: crypto.randomUUID(),
-    name: section.name,
-    content: section.content,
-    isRequired: section.isRequired,
-    order: 0, // The order will be set by the store
+    ...section,
+    id: crypto.randomUUID() // Generate new IDs to avoid collisions
   }));
 }

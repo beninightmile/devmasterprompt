@@ -75,9 +75,9 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
         <AutoSaveSettings 
           enabled={autoSaveEnabled}
           interval={autoSaveInterval} 
-          lastSave={lastSaveTime}
+          lastSaveTime={lastSaveTime}
           onToggle={onAutoSaveToggle}
-          onIntervalChange={onAutoSaveIntervalChange} 
+          onIntervalChange={onAutoSaveIntervalChange}
         />
       </div>
 

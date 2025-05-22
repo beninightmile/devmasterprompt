@@ -10,13 +10,22 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { defaultPromptSections } from '@/core/registry';
+import { PromptSection } from '@/types/prompt';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface NewSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCustomSection: (name: string) => void;
+  onAddCustomSection: (name: string, areaId?: string) => void;
   onAddExistingSection: (template: any) => void;
   existingSections: string[];
+  areas: PromptSection[];
 }
 
 const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
@@ -25,12 +34,16 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
   onAddCustomSection,
   onAddExistingSection,
   existingSections,
+  areas,
 }) => {
   const [newSectionName, setNewSectionName] = useState('');
+  const [selectedAreaId, setSelectedAreaId] = useState<string | undefined>(
+    areas.length > 0 ? areas[0].id : undefined
+  );
   
   const handleAddSection = () => {
     if (newSectionName.trim()) {
-      onAddCustomSection(newSectionName.trim());
+      onAddCustomSection(newSectionName.trim(), selectedAreaId);
       setNewSectionName('');
     }
   };
@@ -44,29 +57,48 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a New Section</DialogTitle>
+          <DialogTitle>Neue Sektion hinzufügen</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="new-section-name">Custom Section Name</Label>
+            <Label htmlFor="area-select">Bereich auswählen</Label>
+            <Select 
+              value={selectedAreaId} 
+              onValueChange={setSelectedAreaId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Wählen Sie einen Bereich" />
+              </SelectTrigger>
+              <SelectContent>
+                {areas.map(area => (
+                  <SelectItem key={area.id} value={area.id}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="new-section-name">Name der neuen Sektion</Label>
             <Input 
               id="new-section-name" 
-              placeholder="Enter section name" 
+              placeholder="Geben Sie den Sektionsnamen ein" 
               value={newSectionName} 
               onChange={e => setNewSectionName(e.target.value)} 
             />
             <Button 
               onClick={handleAddSection} 
-              disabled={!newSectionName.trim()} 
+              disabled={!newSectionName.trim() || !selectedAreaId} 
               className="w-full mt-2"
             >
-              Create Custom Section
+              Benutzerdefinierte Sektion erstellen
             </Button>
           </div>
           
           {unusedSections.length > 0 && (
             <div className="space-y-2 mt-4">
-              <Label>Or choose from template sections</Label>
+              <Label>Oder wählen Sie aus vordefinierten Sektionen</Label>
               <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
                 {unusedSections.map(template => (
                   <Button 

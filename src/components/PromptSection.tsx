@@ -14,7 +14,8 @@ interface PromptSectionProps {
   content: string;
   isRequired: boolean;
   isDragging?: boolean;
-  level?: number;  // Added level property for hierarchical display
+  level?: number;
+  isArea?: boolean;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
@@ -25,7 +26,8 @@ const PromptSection: React.FC<PromptSectionProps> = ({
   content,
   isRequired,
   isDragging,
-  level = 1,  // Default to level 1
+  level = 1,
+  isArea = false,
   onDragStart,
   onDragEnd
 }) => {
@@ -49,7 +51,13 @@ const PromptSection: React.FC<PromptSectionProps> = ({
 
   const handleDelete = () => {
     if (!isRequired) {
-      removeSection(id);
+      const confirmMessage = isArea 
+        ? "Sind Sie sicher, dass Sie diesen Bereich und alle seine Sektionen löschen möchten?" 
+        : "Sind Sie sicher, dass Sie diese Sektion löschen möchten?";
+      
+      if (window.confirm(confirmMessage)) {
+        removeSection(id);
+      }
     }
   };
 
@@ -72,6 +80,11 @@ const PromptSection: React.FC<PromptSectionProps> = ({
     
     return colors[(level - 2) % colors.length];
   };
+
+  // If this is an area, render it as a collapsible header
+  if (isArea) {
+    return null; // Areas are now handled by SectionList
+  }
 
   return (
     <Card className={`prompt-section ${isDragging ? 'opacity-50' : ''} ${getLevelClass()}`}>
