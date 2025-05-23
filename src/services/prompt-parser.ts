@@ -5,10 +5,11 @@ import { parseTextIntoSections as parseTextIntoSectionsImpl,
          matchWithDefaultSections as matchWithDefaultSectionsImpl,
          createDefaultAreas,
          createDefaultSectionForArea,
-         DEFAULT_AREAS } from './prompt-parser/index';
+         DEFAULT_AREAS,
+         STANDARD_SECTIONS } from './prompt-parser/index';
 
 // Re-export the functions from prompt-parser/index.ts
-export { createDefaultAreas, createDefaultSectionForArea, DEFAULT_AREAS };
+export { createDefaultAreas, createDefaultSectionForArea, DEFAULT_AREAS, STANDARD_SECTIONS };
 
 // Interface for the detected sections before mapping to PromptSection
 export interface DetectedSection {

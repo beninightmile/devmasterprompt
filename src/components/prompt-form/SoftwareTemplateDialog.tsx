@@ -8,7 +8,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { SoftwareTemplate, getAllSoftwareTemplates, convertTemplateToSections } from '@/services/software-templates';
+import { 
+  SoftwareTemplate, 
+  getAllSoftwareTemplates, 
+  convertTemplateToSections
+} from '@/services/software-templates';
 import { Badge } from '@/components/ui/badge';
 import { ChevronRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -48,42 +52,57 @@ const SoftwareTemplateDialog: React.FC<SoftwareTemplateDialogProps> = ({
     onOpenChange(false);
   };
 
+  // Calculate area and section counts for display
+  const getTemplateStats = (template: SoftwareTemplate) => {
+    const areaCount = template.sections.filter(s => s.isArea).length;
+    const standardCount = template.sections.filter(s => !s.isArea && s.level === 1).length;
+    const sectionCount = template.sections.filter(s => !s.isArea && s.level > 1).length;
+    
+    return { areaCount, standardCount, sectionCount };
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Choose Software Template</DialogTitle>
+          <DialogTitle>Software-Vorlage auswählen</DialogTitle>
           <DialogDescription>
-            Select a template based on your project type and complexity to get started with appropriate sections.
+            Wählen Sie eine Vorlage basierend auf Ihrem Projekttyp und der Komplexität, um mit den passenden Abschnitten zu beginnen.
           </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-4 p-1">
-            {templates.map((template) => (
-              <div 
-                key={template.id}
-                className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
-                onClick={() => handleSelectTemplate(template)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{template.name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">{template.description}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <ComplexityBadge complexity={template.complexity} />
-                      <Badge variant="outline">Est. {template.estimatedTime}</Badge>
-                      <Badge variant="secondary">{template.sections.length} sections</Badge>
+            {templates.map((template) => {
+              const { areaCount, standardCount, sectionCount } = getTemplateStats(template);
+              
+              return (
+                <div 
+                  key={template.id}
+                  className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
+                  onClick={() => handleSelectTemplate(template)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{template.name}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{template.description}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <ComplexityBadge complexity={template.complexity} />
+                        <Badge variant="outline">Est. {template.estimatedTime}</Badge>
+                        <Badge variant="secondary">{standardCount} Standard-Sektionen</Badge>
+                        <Badge variant="secondary">{areaCount} Areas</Badge>
+                        <Badge variant="secondary">{sectionCount} Sektionen</Badge>
+                      </div>
                     </div>
+                    
+                    <Button variant="ghost" size="icon">
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
                   </div>
-                  
-                  <Button variant="ghost" size="icon">
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </ScrollArea>
       </DialogContent>

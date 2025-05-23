@@ -1,6 +1,6 @@
 
 import { PromptSection } from '@/types/prompt';
-import { DEFAULT_AREAS } from './prompt-parser';
+import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser';
 
 // Define the types of software templates available
 export type SoftwareTemplateType = 
@@ -22,6 +22,8 @@ export interface SoftwareTemplate {
   estimatedTime: string;  // "3-5 days", "2-4 weeks", etc.
   type: SoftwareTemplateType;
   sections: PromptSection[];
+  areaCount: number; // Number of areas in the template
+  sectionCount: number; // Number of non-area sections in the template
 }
 
 // Helper function to create an area with children
@@ -63,6 +65,18 @@ const createTemplateArea = (areaProps: {
   return [area, ...childSections];
 };
 
+// Helper function to create standard sections
+const createStandardSections = (): PromptSection[] => {
+  return STANDARD_SECTIONS.map((section, index) => ({
+    id: `standard-${section.id}`,
+    name: section.name,
+    content: section.defaultContent,
+    order: index + 1,
+    isRequired: true,
+    level: 1
+  }));
+};
+
 // Collection of predefined software templates using the hierarchical structure
 export const softwareTemplates: SoftwareTemplate[] = [
   {
@@ -73,6 +87,9 @@ export const softwareTemplates: SoftwareTemplate[] = [
     estimatedTime: '1-3 Tage',
     type: 'web_app_simple',
     sections: [
+      // Standard sections first
+      ...createStandardSections(),
+      
       // Tech Stack Area
       ...createTemplateArea({
         id: 'core_1',
@@ -138,7 +155,14 @@ export const softwareTemplates: SoftwareTemplate[] = [
           }
         ]
       })
-    ]
+    ],
+    // Calculate area and section counts
+    get areaCount() { 
+      return this.sections.filter(s => s.isArea).length;
+    },
+    get sectionCount() {
+      return this.sections.filter(s => !s.isArea && s.level > 1).length;
+    }
   },
   {
     id: 'web_complex',
@@ -148,6 +172,9 @@ export const softwareTemplates: SoftwareTemplate[] = [
     estimatedTime: '1-3 Wochen',
     type: 'web_app_complex',
     sections: [
+      // Standard sections first
+      ...createStandardSections(),
+      
       // Tech Stack Area
       ...createTemplateArea({
         id: 'core_1',
@@ -252,7 +279,13 @@ export const softwareTemplates: SoftwareTemplate[] = [
           }
         ]
       })
-    ]
+    ],
+    get areaCount() { 
+      return this.sections.filter(s => s.isArea).length;
+    },
+    get sectionCount() {
+      return this.sections.filter(s => !s.isArea && s.level > 1).length;
+    }
   },
   {
     id: 'fullstack',
@@ -262,12 +295,18 @@ export const softwareTemplates: SoftwareTemplate[] = [
     estimatedTime: '3-6 Wochen',
     type: 'fullstack_application',
     sections: [
+      // Standard sections first
+      ...createStandardSections(),
+      
+      // Create unique areas based on DEFAULT_AREAS to avoid duplicates
       ...DEFAULT_AREAS.flatMap((area, index) => {
-        // Create example sections for each area
+        // Create a unique ID for each area to prevent duplicates
+        const uniqueId = `fullstack-${area.id}`;
+        
         return createTemplateArea({
-          id: `template-${area.id}`,
+          id: uniqueId,
           name: area.name,
-          order: (index + 1) * 10,
+          order: (index + 1) * 10 + STANDARD_SECTIONS.length,
           children: [
             {
               name: `${area.name} - Hauptsektion`,
@@ -282,7 +321,13 @@ export const softwareTemplates: SoftwareTemplate[] = [
           ]
         });
       })
-    ]
+    ],
+    get areaCount() { 
+      return this.sections.filter(s => s.isArea).length;
+    },
+    get sectionCount() {
+      return this.sections.filter(s => !s.isArea && s.level > 1).length;
+    }
   }
 ];
 
@@ -301,11 +346,38 @@ export function getAllSoftwareTemplates(): SoftwareTemplate[] {
 }
 
 /**
- * Convert a software template to prompt sections
+ * Convert a software template to prompt sections, ensuring no duplicates
  */
 export function convertTemplateToSections(template: SoftwareTemplate): PromptSection[] {
-  return template.sections.map(section => ({
-    ...section,
-    id: crypto.randomUUID() // Generate new IDs to avoid collisions
-  }));
+  // Track used area IDs to prevent duplicates
+  const usedAreaIds = new Set<string>();
+  
+  return template.sections.map(section => {
+    let newId = crypto.randomUUID();
+    
+    // If this is an area, make sure we don't have duplicate IDs
+    if (section.isArea) {
+      // Create a map to track which area names we've seen
+      usedAreaIds.add(section.name);
+    }
+    
+    return {
+      ...section,
+      id: newId // Generate new IDs to avoid collisions
+    };
+  });
+}
+
+/**
+ * Count the number of areas in a template
+ */
+export function countAreasInTemplate(template: SoftwareTemplate): number {
+  return template.sections.filter(section => section.isArea).length;
+}
+
+/**
+ * Count the number of sections (non-areas) in a template
+ */
+export function countSectionsInTemplate(template: SoftwareTemplate): number {
+  return template.sections.filter(section => !section.isArea).length;
 }

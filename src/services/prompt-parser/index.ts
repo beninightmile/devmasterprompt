@@ -1,4 +1,3 @@
-
 import { DetectedSection } from './types';
 import { 
   parseMarkdownHeadings,
@@ -13,6 +12,33 @@ import {
 } from './parsers';
 import { matchWithDefaultSections } from './section-matcher';
 import { cleanupSectionName, mergeSections } from './section-utils';
+
+/**
+ * Define standard sections that should appear before areas
+ */
+export const STANDARD_SECTIONS = [
+  {
+    id: 'standard_1',
+    name: 'Projektname',
+    prefix: '@@Standard_1',
+    defaultContent: 'Geben Sie hier den Namen des Projekts ein.',
+    order: 1,
+  },
+  {
+    id: 'standard_2',
+    name: 'Beschreibung',
+    prefix: '@@Standard_2',
+    defaultContent: 'Beschreiben Sie hier Ihr Projekt in wenigen Sätzen.',
+    order: 2,
+  },
+  {
+    id: 'standard_3',
+    name: 'Ziel',
+    prefix: '@@Standard_3',
+    defaultContent: 'Definieren Sie hier das Hauptziel des Projekts.',
+    order: 3,
+  },
+];
 
 /**
  * Define default areas for new prompt
@@ -183,10 +209,22 @@ function assignSectionIds(sections: DetectedSection[]): DetectedSection[] {
 }
 
 /**
- * Create default area sections
+ * Create default standard sections and area sections
  */
 export function createDefaultAreas() {
-  return DEFAULT_AREAS.map(area => ({
+  // First create the standard sections
+  const standardSections = STANDARD_SECTIONS.map(section => ({
+    id: crypto.randomUUID(),
+    name: section.name,
+    content: section.defaultContent,
+    order: section.order,
+    isRequired: true,
+    level: 1,
+    isArea: false
+  }));
+
+  // Then create the area sections
+  const areaSections = DEFAULT_AREAS.map(area => ({
     id: crypto.randomUUID(),
     name: area.name,
     content: area.defaultContent,
@@ -195,6 +233,9 @@ export function createDefaultAreas() {
     level: 1,
     isArea: true
   }));
+
+  // Return combined sections with standard sections first
+  return [...standardSections, ...areaSections];
 }
 
 /**

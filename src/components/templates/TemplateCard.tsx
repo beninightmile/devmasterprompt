@@ -16,6 +16,13 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template, onDelete, onLoad }) => {
+  // Calculate counts for areas and different section types
+  const standardSections = template.sections.filter(s => !s.isArea && s.level === 1);
+  const areas = template.sections.filter(s => s.isArea);
+  const childSections = template.sections.filter(s => !s.isArea && s.level > 1);
+  
+  const filledSections = getNonEmptySectionsCount(template.sections);
+
   return (
     <Card>
       <CardHeader>
@@ -28,22 +35,31 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onDelete, onLoad 
         <div className="text-sm text-muted-foreground mb-4">
           <div className="flex items-center mb-1">
             <Calendar size={14} className="mr-2" />
-            Created: {format(new Date(template.createdAt), 'PP')}
+            Erstellt: {format(new Date(template.createdAt), 'PP')}
           </div>
           <div className="flex items-center">
             <Clock size={14} className="mr-2" />
-            Updated: {format(new Date(template.updatedAt), 'PP')}
+            Aktualisiert: {format(new Date(template.updatedAt), 'PP')}
           </div>
         </div>
         <div className="text-sm space-y-1">
-          <p>
-            {template.sections.length} sections
-            {' ('}
-            {getNonEmptySectionsCount(template.sections)} with content{')'}
-          </p>
+          <div className="flex flex-col gap-1">
+            <p>
+              {standardSections.length} Standard-Sektionen
+            </p>
+            <p>
+              {areas.length} Areas
+            </p>
+            <p>
+              {childSections.length} Unter-Sektionen
+            </p>
+            <p className="font-medium mt-1">
+              {filledSections} von {template.sections.length} Sektionen mit Inhalt
+            </p>
+          </div>
           {template.totalTokens && (
-            <p className="font-medium">
-              {template.totalTokens} tokens
+            <p className="font-medium mt-2">
+              {template.totalTokens} Tokens
             </p>
           )}
         </div>
@@ -65,10 +81,10 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onDelete, onLoad 
       <CardFooter className="flex justify-between">
         <Button variant="outline" size="sm" onClick={() => onDelete(template.id)}>
           <Trash2 size={14} className="mr-2" />
-          Delete
+          Löschen
         </Button>
         <Button size="sm" onClick={() => onLoad(template.id)}>
-          Use Template
+          Vorlage verwenden
         </Button>
       </CardFooter>
     </Card>
