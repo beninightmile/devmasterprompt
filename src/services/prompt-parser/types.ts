@@ -1,15 +1,39 @@
 
 /**
- * Types used by the prompt parser services
+ * Core types for the prompt parser system
  */
 
-export type DetectedSection = {
-  id?: string;          // Optional unique identifier (assigned during processing)
-  name: string;         // Section title/name
-  content: string;      // Section content
-  level?: number;       // Hierarchical level (e.g., heading level, numbering depth)
-  parentId?: string;    // Reference to parent section for hierarchical structure
-  numberPrefix?: string; // For numbered sections like "1.2.3"
-  blockPrefix?: string; // For prefixed sections like "@Core_1"
-  order?: number;       // Position order for sorting sections
-};
+/**
+ * Interface for sections detected during text parsing
+ */
+export interface DetectedSection {
+  id?: string;
+  name: string;
+  content: string;
+  level?: number;
+  order?: number;
+  parentId?: string;
+  isArea?: boolean;
+  blockPrefix?: string; // For prefixed sections like @@Core_1:
+}
+
+/**
+ * Configuration for parsing different text formats
+ */
+export interface ParseConfig {
+  enableMarkdown?: boolean;
+  enableNumbered?: boolean;
+  enablePrefixed?: boolean;
+  enableColon?: boolean;
+  enableParagraph?: boolean;
+  prioritizePrefixed?: boolean; // For German @@Core_ sections
+}
+
+/**
+ * Result of parsing operation
+ */
+export interface ParseResult {
+  sections: DetectedSection[];
+  parserUsed: string;
+  confidence: number; // 0-1 scale of parsing confidence
+}

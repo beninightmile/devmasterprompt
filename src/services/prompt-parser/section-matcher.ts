@@ -1,4 +1,3 @@
-
 import { DetectedSection } from './types';
 import { defaultPromptSections } from '@/core/registry';
 import { PromptSection } from '@/types/prompt';
@@ -6,20 +5,47 @@ import { cleanupSectionName } from './section-utils';
 
 /**
  * Try to match detected sections with default template sections when possible
+ * Enhanced for German section names and @@Core_ prefixes
  */
 export function matchWithDefaultSections(detectedSections: DetectedSection[]): PromptSection[] {
+  console.log('🔄 Matching sections with defaults:', detectedSections.length);
+  
   const defaultSectionsMap = new Map(
     defaultPromptSections.map(section => [section.name.toLowerCase(), section])
   );
   
+  // German section name mappings
+  const germanMappings = new Map([
+    ['projektname', 'project name'],
+    ['beschreibung', 'description'],
+    ['ziel', 'goal'],
+    ['zielsetzung', 'goal'],
+    ['technologie-stack', 'technology stack'],
+    ['tooling', 'tooling'],
+    ['projektstruktur', 'project structure'],
+    ['architekturprinzipien', 'architecture principles'],
+    ['ui-system', 'ui system'],
+    ['design-konventionen', 'design conventions'],
+    ['security', 'security'],
+    ['authentifizierung', 'authentication'],
+    ['rollenmanagement', 'role management']
+  ]);
+  
   return detectedSections.map((detectedSection, index) => {
+    console.log(`📝 Processing section: "${detectedSection.name}"`);
+    
     // Clean up the section name for better matching
     const cleanName = cleanupSectionName(detectedSection.name);
     
     // Try to find a matching default section
-    const matchedDefault = findMatchingDefaultSection(cleanName, defaultSectionsMap);
+    const matchedDefault = findMatchingDefaultSection(
+      cleanName, 
+      defaultSectionsMap, 
+      germanMappings
+    );
     
     if (matchedDefault) {
+      console.log(`✅ Matched "${cleanName}" to default section "${matchedDefault.name}"`);
       // If found, use the default section's properties with the detected content
       return {
         id: matchedDefault.id,
@@ -27,19 +53,22 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
         content: detectedSection.content,
         order: matchedDefault.order,
         isRequired: matchedDefault.isRequired,
-        level: detectedSection.level || 1, // Preserve hierarchical information
-        parentId: detectedSection.parentId // Preserve parent reference if available
+        level: detectedSection.level || 1,
+        parentId: detectedSection.parentId,
+        isArea: detectedSection.isArea
       };
     } else {
+      console.log(`🆕 Creating new custom section for "${cleanName}"`);
       // Otherwise create a new custom section
       return {
         id: detectedSection.id || crypto.randomUUID(),
-        name: cleanName, // Use the cleaned name
+        name: cleanName,
         content: detectedSection.content,
-        order: index + defaultPromptSections.length,
+        order: detectedSection.order || (index + defaultPromptSections.length),
         isRequired: false,
-        level: detectedSection.level || 1, // Preserve hierarchical information
-        parentId: detectedSection.parentId // Preserve parent reference if available
+        level: detectedSection.level || 1,
+        parentId: detectedSection.parentId,
+        isArea: detectedSection.isArea || false
       };
     }
   });
@@ -47,8 +76,13 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
 
 /**
  * Find a matching default section based on name similarity
+ * Enhanced for German content and @@Core_ prefixes
  */
-export function findMatchingDefaultSection(detectedName: string, defaultSectionsMap: Map<string, any>): any | undefined {
+export function findMatchingDefaultSection(
+  detectedName: string, 
+  defaultSectionsMap: Map<string, any>,
+  germanMappings: Map<string, string>
+): any | undefined {
   const normalizedName = detectedName.toLowerCase();
   
   // Direct match
@@ -56,15 +90,29 @@ export function findMatchingDefaultSection(detectedName: string, defaultSections
     return defaultSectionsMap.get(normalizedName);
   }
   
+  // Check German mappings
+  const germanMatch = germanMappings.get(normalizedName);
+  if (germanMatch && defaultSectionsMap.has(germanMatch)) {
+    return defaultSectionsMap.get(germanMatch);
+  }
+  
   // Handle numbered sections and prefixed sections
   // Strip common prefixes for matching
   let strippedName = normalizedName
     .replace(/^(\d+\.|\d+\.\d+\.?|\d+\.\d+\.\d+\.?)\s+/, '') // Remove numbered prefixes up to 3 levels
-    .replace(/^@[a-z0-9_\-]+:\s*/i, '')    // Remove @Core_X: type prefixes
-    .replace(/^(?:block|feature|core|section)\s+\d+:?\s*/i, ''); // Remove "Block N:" prefixes
+    .replace(/^@@core_\d+:\s*/i, '')    // Remove @@Core_X: type prefixes
+    .replace(/^@@standard_\d+:\s*/i, '') // Remove @@Standard_X: type prefixes
+    .replace(/^@[a-z0-9_\-]+:\s*/i, '')    // Remove @Other_X: type prefixes
+    .replace(/^(?:block|feature|core|section|standard)\s+\d+:?\s*/i, ''); // Remove "Block N:" prefixes
   
   if (defaultSectionsMap.has(strippedName)) {
     return defaultSectionsMap.get(strippedName);
+  }
+  
+  // Check German mappings for stripped name
+  const germanStrippedMatch = germanMappings.get(strippedName);
+  if (germanStrippedMatch && defaultSectionsMap.has(germanStrippedMatch)) {
+    return defaultSectionsMap.get(germanStrippedMatch);
   }
   
   // Partial match - check if any default section name is contained in the detected name
@@ -74,6 +122,15 @@ export function findMatchingDefaultSection(detectedName: string, defaultSections
         strippedName.includes(defaultName) ||
         defaultName.includes(strippedName)) {
       return section;
+    }
+  }
+  
+  // Check German mappings for partial matches
+  for (const [germanName, englishName] of germanMappings.entries()) {
+    if (normalizedName.includes(germanName) || strippedName.includes(germanName)) {
+      if (defaultSectionsMap.has(englishName)) {
+        return defaultSectionsMap.get(englishName);
+      }
     }
   }
   

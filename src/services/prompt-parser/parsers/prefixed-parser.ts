@@ -1,77 +1,125 @@
-
 import { DetectedSection } from '../types';
 
 /**
- * Parse sections with special prefixes like "@@Core_1: Section Name" or "@Core_1: Section Name"
+ * Parse sections with special prefixes like "@@Core_1: Section Name" or "@Standard_1: Section Name"
  * Enhanced to better support block-style prefixed sections and area recognition
+ * Prioritizes German @@Core_ and @@Standard_ sections
  */
 export function parsePrefixedSections(text: string): DetectedSection[] {
   const sections: DetectedSection[] = [];
   const lines = text.split('\n');
   let currentSection: DetectedSection | null = null;
-  let currentArea: DetectedSection | null = null;
   
   // Enhanced regex for prefixed section headers
-  // Supports both @ and @@ prefixes for different levels
-  const prefixedHeaderRegex = /^(@@|@)([A-Za-z0-9_\-]+)(?:\s*\:|\s+\:)\s*(.+)$/i;
+  // Supports @@Core_, @@Standard_, and other @ prefixes
+  const prefixedHeaderRegex = /^(@@|@)([A-Za-z0-9_\-]+)(?:\s*[:\.]|\s+[:\.])\s*(.+)$/i;
+  
+  // Special handling for standard sections without prefixes
+  const standardSectionRegex = /^(Projektname|Beschreibung|Ziel|Zielsetzung)\s*[:\.]?\s*(.*)$/i;
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i].trim();
+    if (!line) continue;
+    
     const headerMatch = line.match(prefixedHeaderRegex);
+    const standardMatch = line.match(standardSectionRegex);
     
     if (headerMatch) {
-      // We found a prefixed heading
+      // We found a prefixed heading (@@Core_1:, @Standard_1:, etc.)
       if (currentSection && currentSection.content.trim()) {
         sections.push(currentSection);
       }
       
       const prefix = headerMatch[1]; // @@ or @
-      const identifier = headerMatch[2]; // Core_1, etc
+      const identifier = headerMatch[2]; // Core_1, Standard_1, etc
       const title = headerMatch[3].trim();
       const fullPrefix = `${prefix}${identifier}`;
-      const isArea = prefix === '@@';
+      const isArea = prefix === '@@' && identifier.startsWith('Core_');
+      const isStandard = prefix === '@@' && identifier.startsWith('Standard_');
       
-      // Try to determine level from prefix if possible
+      // Determine level based on prefix type
       let level = 1; // Default level
+      let order = 0;
       
-      if (identifier.includes('_')) {
-        // For @Core_1 style, use the number
+      if (isStandard) {
+        // Standard sections come first (order 1-10)
         const levelMatch = identifier.match(/_(\d+)/);
-        if (levelMatch) level = parseInt(levelMatch[1], 10);
+        if (levelMatch) {
+          order = parseInt(levelMatch[1], 10);
+        }
+        level = 1;
+      } else if (isArea) {
+        // Core areas come after standard sections (order 10+)
+        const levelMatch = identifier.match(/_(\d+)/);
+        if (levelMatch) {
+          order = parseInt(levelMatch[1], 10) * 10; // 10, 20, 30, etc.
+        }
+        level = 1;
+      } else {
+        // Other prefixed sections
+        level = 2;
+        order = 1000; // Lower priority
       }
       
       // Start a new section
-      const newSection = {
-        name: `${title}`,
+      const newSection: DetectedSection = {
+        id: crypto.randomUUID(),
+        name: title,
         content: '',
-        level: isArea ? 1 : 2, // Areas are level 1, child sections are level 2+
+        level: level,
         blockPrefix: fullPrefix,
         isArea: isArea,
-        order: i,
-        parentId: isArea ? undefined : currentArea?.id
+        order: order
       };
       
-      // If this is an area, update currentArea reference
-      if (isArea) {
-        currentArea = newSection;
+      currentSection = newSection;
+    } else if (standardMatch) {
+      // We found a standard section without prefix (Projektname:, Beschreibung:, etc.)
+      if (currentSection && currentSection.content.trim()) {
+        sections.push(currentSection);
       }
       
+      const sectionName = standardMatch[1];
+      const initialContent = standardMatch[2] || '';
+      
+      // Map German section names to standard order
+      const standardOrder: Record<string, number> = {
+        'Projektname': 1,
+        'Beschreibung': 2,
+        'Ziel': 3,
+        'Zielsetzung': 3 // Alias for Ziel
+      };
+      
+      const newSection: DetectedSection = {
+        id: crypto.randomUUID(),
+        name: sectionName,
+        content: initialContent + '\n',
+        level: 1,
+        order: standardOrder[sectionName] || 0,
+        isArea: false
+      };
+      
       currentSection = newSection;
-      sections.push(currentSection);
     } else if (currentSection) {
       // Add this line to the current section's content
       currentSection.content += line + '\n';
     } else if (line.trim()) {
-      // Text before any heading becomes "Introduction" section
+      // Text before any heading becomes "Unsorted Content" section
       currentSection = {
+        id: crypto.randomUUID(),
         name: 'Unsorted Content',
         content: line + '\n',
         level: 1,
         order: 0
       };
-      sections.push(currentSection);
     }
   }
   
-  return sections;
+  // Add the final section if there is one
+  if (currentSection && currentSection.content.trim()) {
+    sections.push(currentSection);
+  }
+  
+  // Sort sections by order to ensure proper hierarchy
+  return sections.sort((a, b) => (a.order || 0) - (b.order || 0));
 }
