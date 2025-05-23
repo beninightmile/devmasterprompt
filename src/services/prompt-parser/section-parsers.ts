@@ -13,3 +13,6 @@ export {
   parseCombinedFormatSections,
   enhanceHierarchicalStructure
 } from './parsers';
+
+// Also re-export utilities that have moved to section-utils.ts
+export { cleanupSectionName, mergeSections, extractLevelFromName } from './section-utils';

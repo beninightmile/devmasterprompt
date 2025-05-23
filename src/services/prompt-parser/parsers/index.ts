@@ -1,6 +1,5 @@
 
-import { DetectedSection } from '../types';
-
+// Export all parser implementations
 export { parseMarkdownHeadings } from './markdown-parser';
 export { parseNumberedSections } from './numbered-parser';
 export { parsePrefixedSections } from './prefixed-parser';

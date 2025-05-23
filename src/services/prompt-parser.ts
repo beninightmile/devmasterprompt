@@ -1,21 +1,18 @@
 
 import { PromptSection } from '@/types/prompt';
-import { defaultPromptSections } from '@/core/registry';
 import { parseTextIntoSections as parseTextIntoSectionsImpl, 
          matchWithDefaultSections as matchWithDefaultSectionsImpl,
          createDefaultAreas,
          createDefaultSectionForArea,
          DEFAULT_AREAS,
-         STANDARD_SECTIONS } from './prompt-parser/index';
+         STANDARD_SECTIONS,
+         DetectedSection } from './prompt-parser/index';
 
 // Re-export the functions from prompt-parser/index.ts
 export { createDefaultAreas, createDefaultSectionForArea, DEFAULT_AREAS, STANDARD_SECTIONS };
 
-// Interface for the detected sections before mapping to PromptSection
-export interface DetectedSection {
-  name: string;
-  content: string;
-}
+// Re-export the DetectedSection type
+export type { DetectedSection };
 
 /**
  * Parse text input into sections based on various formatting patterns

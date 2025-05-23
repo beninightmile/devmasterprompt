@@ -1,22 +1,19 @@
 
-import { DetectedSection } from './types';
 import { matchWithDefaultSections } from './section-matcher';
 import { cleanupSectionName, mergeSections } from './section-utils';
 import { parseTextIntoSections } from './text-parser';
 import { createDefaultAreas, createDefaultSectionForArea } from './factories';
 import { DEFAULT_AREAS, STANDARD_SECTIONS } from './constants';
+import { DetectedSection } from './types';
 
 // Re-export everything for backwards compatibility
 export { createDefaultAreas, createDefaultSectionForArea, DEFAULT_AREAS, STANDARD_SECTIONS };
 
-// Interface for the detected sections before mapping to PromptSection
-export interface DetectedSection {
-  name: string;
-  content: string;
-}
-
 // Export the main parsing functions
 export { parseTextIntoSections, matchWithDefaultSections };
+
+// Export utilities
+export { cleanupSectionName, mergeSections };
 
 // Export all parsers for direct use
 export { 
@@ -28,9 +25,7 @@ export {
   parseComplexDocument,
   parseMixedFormatSections,
   parseCombinedFormatSections,
-  enhanceHierarchicalStructure,
-  cleanupSectionName,
-  mergeSections
+  enhanceHierarchicalStructure
 } from './parsers';
 
 // Export types
