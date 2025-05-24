@@ -7,6 +7,7 @@ import { DragDropProvider } from './DragDropContext';
 import SectionManager from './SectionManager';
 import DialogManager from './DialogManager';
 import AutoSaveHandler from './AutoSaveHandler';
+import Ideas from '@/components/Ideas';
 import { usePromptFormHandlers } from '@/hooks/usePromptFormHandlers';
 
 interface PromptFormProps {
@@ -60,9 +61,12 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   };
   
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Auto-save handler (no UI) */}
       <AutoSaveHandler onAutoSave={handleAutoSave} />
+      
+      {/* Ideas section */}
+      <Ideas />
       
       {/* Header with template name, preview toggle, and action buttons */}
       <PromptFormHeader 

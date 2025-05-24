@@ -10,6 +10,21 @@ export interface PromptSection {
   isArea?: boolean;   // Indicates if this section is an area
 }
 
+export interface TodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: Date;
+}
+
+export interface IdeaNote {
+  id: string;
+  content: string;
+  todos: TodoItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface PromptTemplate {
   id: string;
   name: string;

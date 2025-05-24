@@ -1,6 +1,7 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { PromptSection, InspirationItem } from '../types/prompt';
+import type { PromptSection, InspirationItem, IdeaNote, TodoItem } from '../types/prompt';
 import { createPromptActions } from './promptActions';
 
 interface PromptState {
@@ -13,6 +14,7 @@ interface PromptState {
   autoSaveEnabled: boolean;
   autoSaveInterval: number; // in minutes
   lastSaveTime: Date | null;
+  ideas: IdeaNote[];
   
   // Actions
   addSection: (section: Omit<PromptSection, 'order'>, areaId?: string) => void;
@@ -32,6 +34,14 @@ interface PromptState {
   resetToDefault: () => void;
   clearAll: () => void;
   initializeDefaultAreas: () => void;
+  
+  // Ideas actions
+  addIdea: (content: string) => void;
+  updateIdea: (id: string, updates: Partial<IdeaNote>) => void;
+  removeIdea: (id: string) => void;
+  addTodoToIdea: (ideaId: string, text: string) => void;
+  updateTodo: (ideaId: string, todoId: string, updates: Partial<TodoItem>) => void;
+  removeTodo: (ideaId: string, todoId: string) => void;
 }
 
 // Initialize with default areas instead of sections
@@ -49,6 +59,7 @@ export const usePromptStore = create<PromptState>()(
       autoSaveEnabled: false,
       autoSaveInterval: 5, // Default to 5 minutes
       lastSaveTime: null,
+      ideas: [],
       
       // Spread the actions
       ...createPromptActions(set, get),
@@ -98,6 +109,64 @@ export const usePromptStore = create<PromptState>()(
       }),
       
       updateLastSaveTime: () => set({ lastSaveTime: new Date() }),
+      
+      // Ideas actions
+      addIdea: (content) => set(state => ({
+        ideas: [...state.ideas, {
+          id: crypto.randomUUID(),
+          content,
+          todos: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }]
+      })),
+      
+      updateIdea: (id, updates) => set(state => ({
+        ideas: state.ideas.map(idea => 
+          idea.id === id ? { ...idea, ...updates, updatedAt: new Date() } : idea
+        )
+      })),
+      
+      removeIdea: (id) => set(state => ({
+        ideas: state.ideas.filter(idea => idea.id !== id)
+      })),
+      
+      addTodoToIdea: (ideaId, text) => set(state => ({
+        ideas: state.ideas.map(idea => 
+          idea.id === ideaId ? {
+            ...idea,
+            todos: [...idea.todos, {
+              id: crypto.randomUUID(),
+              text,
+              completed: false,
+              createdAt: new Date()
+            }],
+            updatedAt: new Date()
+          } : idea
+        )
+      })),
+      
+      updateTodo: (ideaId, todoId, updates) => set(state => ({
+        ideas: state.ideas.map(idea => 
+          idea.id === ideaId ? {
+            ...idea,
+            todos: idea.todos.map(todo => 
+              todo.id === todoId ? { ...todo, ...updates } : todo
+            ),
+            updatedAt: new Date()
+          } : idea
+        )
+      })),
+      
+      removeTodo: (ideaId, todoId) => set(state => ({
+        ideas: state.ideas.map(idea => 
+          idea.id === ideaId ? {
+            ...idea,
+            todos: idea.todos.filter(todo => todo.id !== todoId),
+            updatedAt: new Date()
+          } : idea
+        )
+      })),
     }),
     {
       name: 'prompt-store',

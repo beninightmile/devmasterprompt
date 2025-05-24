@@ -13,7 +13,7 @@ interface SectionManagerProps {
 
 const SectionManager: React.FC<SectionManagerProps> = ({ sections }) => {
   const { draggedSectionId, handleDragStart, handleDragEnd, handleDragOver } = useDragDrop();
-  const { addArea } = usePromptStore();
+  const { addArea, addSection } = usePromptStore();
   
   const handleAddArea = () => {
     const areaName = prompt('Geben Sie einen Namen für den neuen Bereich ein:');
@@ -23,6 +23,19 @@ const SectionManager: React.FC<SectionManagerProps> = ({ sections }) => {
         name: areaName.trim(),
         content: '',
         isRequired: false
+      });
+    }
+  };
+  
+  const handleAddIndependentSection = () => {
+    const sectionName = prompt('Geben Sie einen Namen für die neue Sektion ein:');
+    if (sectionName?.trim()) {
+      addSection({
+        id: crypto.randomUUID(),
+        name: sectionName.trim(),
+        content: '',
+        isRequired: false,
+        level: 1 // Independent section at top level
       });
     }
   };
@@ -37,14 +50,23 @@ const SectionManager: React.FC<SectionManagerProps> = ({ sections }) => {
         draggedSectionId={draggedSectionId}
       />
       
-      <Button 
-        variant="outline" 
-        onClick={handleAddArea} 
-        className="mt-6"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Neuen Bereich hinzufügen
-      </Button>
+      <div className="flex gap-3 mt-6">
+        <Button 
+          variant="outline" 
+          onClick={handleAddIndependentSection} 
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Unabhängige Sektion hinzufügen
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          onClick={handleAddArea} 
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Neuen Bereich hinzufügen
+        </Button>
+      </div>
     </div>
   );
 };

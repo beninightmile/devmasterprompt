@@ -1,3 +1,4 @@
+
 import { DetectedSection } from './types';
 import { defaultPromptSections } from '@/core/registry';
 import { PromptSection } from '@/types/prompt';
@@ -14,12 +15,16 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
     defaultPromptSections.map(section => [section.name.toLowerCase(), section])
   );
   
-  // German section name mappings
+  // Enhanced German section name mappings
   const germanMappings = new Map([
     ['projektname', 'project name'],
+    ['kurzbeschreibung', 'description'],
     ['beschreibung', 'description'],
-    ['ziel', 'goal'],
-    ['zielsetzung', 'goal'],
+    ['zielsetzung und unveränderliche regeln', 'goal'],
+    ['ziel', 'zielsetzung und unveränderliche regeln'], // Map old 'ziel' to new compound name
+    ['zielsetzung', 'zielsetzung und unveränderliche regeln'],
+    ['unveränderliche regeln', 'zielsetzung und unveränderliche regeln'],
+    ['referenz ui', 'referenz ui'], // New standalone section
     ['technologie-stack', 'technology stack'],
     ['tooling', 'tooling'],
     ['projektstruktur', 'project structure'],
@@ -37,6 +42,20 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
     // Clean up the section name for better matching
     const cleanName = cleanupSectionName(detectedSection.name);
     
+    // Special handling for specific German sections
+    let finalName = cleanName;
+    
+    // Handle the special case where we want to rename sections
+    if (cleanName.toLowerCase() === 'projektname') {
+      finalName = 'Projektname';
+    } else if (cleanName.toLowerCase() === 'kurzbeschreibung' || cleanName.toLowerCase() === 'beschreibung') {
+      finalName = 'Beschreibung';
+    } else if (cleanName.toLowerCase().includes('zielsetzung') || cleanName.toLowerCase().includes('ziel')) {
+      finalName = 'Zielsetzung und unveränderliche Regeln';
+    } else if (cleanName.toLowerCase().includes('referenz ui')) {
+      finalName = 'Referenz UI';
+    }
+    
     // Try to find a matching default section
     const matchedDefault = findMatchingDefaultSection(
       cleanName, 
@@ -49,7 +68,7 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
       // If found, use the default section's properties with the detected content
       return {
         id: matchedDefault.id,
-        name: matchedDefault.name,
+        name: finalName || matchedDefault.name,
         content: detectedSection.content,
         order: matchedDefault.order,
         isRequired: matchedDefault.isRequired,
@@ -62,7 +81,7 @@ export function matchWithDefaultSections(detectedSections: DetectedSection[]): P
       // Otherwise create a new custom section
       return {
         id: detectedSection.id || crypto.randomUUID(),
-        name: cleanName,
+        name: finalName,
         content: detectedSection.content,
         order: detectedSection.order || (index + defaultPromptSections.length),
         isRequired: false,

@@ -1,3 +1,4 @@
+
 import { DetectedSection } from '../types';
 
 /**
@@ -14,8 +15,19 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
   // Supports @@Core_, @@Standard_, and other @ prefixes
   const prefixedHeaderRegex = /^(@@|@)([A-Za-z0-9_\-]+)(?:\s*[:\.]|\s+[:\.])\s*(.+)$/i;
   
+  // Enhanced mapping for German sections
+  const germanSectionMapping: Record<string, { name: string, order: number }> = {
+    'projektname': { name: 'Projektname', order: 1 },
+    'kurzbeschreibung': { name: 'Beschreibung', order: 2 },
+    'beschreibung': { name: 'Beschreibung', order: 2 },
+    'zielsetzung und unveränderliche regeln': { name: 'Zielsetzung und unveränderliche Regeln', order: 3 },
+    'ziel': { name: 'Zielsetzung und unveränderliche Regeln', order: 3 },
+    'zielsetzung': { name: 'Zielsetzung und unveränderliche Regeln', order: 3 },
+    'referenz ui': { name: 'Referenz UI', order: 4 },
+  };
+  
   // Special handling for standard sections without prefixes
-  const standardSectionRegex = /^(Projektname|Beschreibung|Ziel|Zielsetzung)\s*[:\.]?\s*(.*)$/i;
+  const standardSectionRegex = /^(Projektname|Kurzbeschreibung|Beschreibung|Ziel|Zielsetzung|Zielsetzung und unveränderliche Regeln|Referenz UI)\s*[:\.]?\s*(.*)$/i;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -37,6 +49,11 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
       const isArea = prefix === '@@' && identifier.startsWith('Core_');
       const isStandard = prefix === '@@' && identifier.startsWith('Standard_');
       
+      // Check if this is a German section that needs mapping
+      const lowerTitle = title.toLowerCase();
+      const mappedSection = germanSectionMapping[lowerTitle];
+      const finalName = mappedSection ? mappedSection.name : title;
+      
       // Determine level based on prefix type
       let level = 1; // Default level
       let order = 0;
@@ -46,6 +63,9 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
         const levelMatch = identifier.match(/_(\d+)/);
         if (levelMatch) {
           order = parseInt(levelMatch[1], 10);
+        }
+        if (mappedSection) {
+          order = mappedSection.order;
         }
         level = 1;
       } else if (isArea) {
@@ -64,7 +84,7 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
       // Start a new section
       const newSection: DetectedSection = {
         id: crypto.randomUUID(),
-        name: title,
+        name: finalName,
         content: '',
         level: level,
         blockPrefix: fullPrefix,
@@ -82,20 +102,18 @@ export function parsePrefixedSections(text: string): DetectedSection[] {
       const sectionName = standardMatch[1];
       const initialContent = standardMatch[2] || '';
       
-      // Map German section names to standard order
-      const standardOrder: Record<string, number> = {
-        'Projektname': 1,
-        'Beschreibung': 2,
-        'Ziel': 3,
-        'Zielsetzung': 3 // Alias for Ziel
-      };
+      // Apply German section mapping
+      const lowerName = sectionName.toLowerCase();
+      const mappedSection = germanSectionMapping[lowerName];
+      const finalName = mappedSection ? mappedSection.name : sectionName;
+      const finalOrder = mappedSection ? mappedSection.order : 0;
       
       const newSection: DetectedSection = {
         id: crypto.randomUUID(),
-        name: sectionName,
+        name: finalName,
         content: initialContent + '\n',
         level: 1,
-        order: standardOrder[sectionName] || 0,
+        order: finalOrder,
         isArea: false
       };
       
