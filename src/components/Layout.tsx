@@ -13,12 +13,15 @@ import {
 } from 'lucide-react';
 import { Toaster } from "@/components/ui/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import RightSidebar from '@/components/RightSidebar';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = React.useState(
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = React.useState(false);
   
   React.useEffect(() => {
     if (isDarkMode) {
@@ -31,6 +34,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
   };
+
+  const toggleRightSidebar = () => {
+    setIsRightSidebarOpen(!isRightSidebarOpen);
+  };
+
+  // Add keyboard shortcuts
+  useKeyboardShortcuts({
+    onToggleRightSidebar: toggleRightSidebar,
+  });
   
   const navigation = [
     { name: 'Builder', href: '/', icon: PenTool },
@@ -95,6 +107,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </main>
       </div>
+
+      {/* Right Sidebar */}
+      <RightSidebar 
+        isOpen={isRightSidebarOpen} 
+        onToggle={toggleRightSidebar} 
+      />
       
       <Toaster />
     </div>
