@@ -1,4 +1,3 @@
-
 /**
  * Core types for the prompt parser system
  */
@@ -15,6 +14,7 @@ export interface DetectedSection {
   parentId?: string;
   isArea?: boolean;
   blockPrefix?: string; // For prefixed sections like @@Core_1:
+  numberPrefix?: string; // For numbered sections like "1." or "1.1"
 }
 
 /**
