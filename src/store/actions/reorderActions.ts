@@ -12,7 +12,7 @@ export const createReorderActions = (set: any) => ({
         const section = sectionsMap.get(id);
         if (section) {
           reorderedSections.push({
-            ...section,
+            ...section as PromptSection,
             order: index + 1
           });
         }
