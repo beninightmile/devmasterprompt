@@ -14,7 +14,7 @@ export const createReorderActions = (set: any) => ({
           reorderedSections.push({
             ...section,
             order: index + 1
-          });
+          } as PromptSection);
         }
       });
       
