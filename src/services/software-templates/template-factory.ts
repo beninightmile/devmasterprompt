@@ -44,9 +44,9 @@ export const createTemplateArea = (areaProps: {
 // Helper function to create standard sections
 export const createStandardSections = (): PromptSection[] => {
   return STANDARD_SECTIONS.map((section, index) => ({
-    id: `standard-${section.id}`,
+    id: `standard-${index}`,
     name: section.name,
-    content: section.defaultContent,
+    content: '',
     order: index + 1,
     isRequired: true,
     level: 1

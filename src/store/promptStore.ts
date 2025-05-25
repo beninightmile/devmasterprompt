@@ -22,6 +22,7 @@ interface PromptState {
   updateSection: (id: string, updates: Partial<PromptSection>) => void;
   removeSection: (id: string) => void;
   reorderSections: (orderedIds: string[]) => void;
+  moveSectionToArea: (sectionId: string, targetAreaId?: string) => void;
   setActiveSection: (id: string | null) => void;
   addInspirationItem: (item: Omit<InspirationItem, 'id'>) => void;
   removeInspirationItem: (id: string) => void;

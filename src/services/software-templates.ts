@@ -68,9 +68,9 @@ const createTemplateArea = (areaProps: {
 // Helper function to create standard sections
 const createStandardSections = (): PromptSection[] => {
   return STANDARD_SECTIONS.map((section, index) => ({
-    id: `standard-${section.id}`,
+    id: `standard-${index}`,
     name: section.name,
-    content: section.defaultContent,
+    content: '',
     order: index + 1,
     isRequired: true,
     level: 1
@@ -298,23 +298,22 @@ export const softwareTemplates: SoftwareTemplate[] = [
       // Standard sections first
       ...createStandardSections(),
       
-      // Create unique areas based on DEFAULT_AREAS to avoid duplicates
-      ...DEFAULT_AREAS.flatMap((area, index) => {
-        // Create a unique ID for each area to prevent duplicates
-        const uniqueId = `fullstack-${area.id}`;
+      // Create areas based on DEFAULT_AREAS
+      ...DEFAULT_AREAS.flatMap((defaultArea, index) => {
+        const uniqueId = `fullstack-area-${index}`;
         
         return createTemplateArea({
           id: uniqueId,
-          name: area.name,
+          name: defaultArea.area.name,
           order: (index + 1) * 10 + STANDARD_SECTIONS.length,
           children: [
             {
-              name: `${area.name} - Hauptsektion`,
-              content: area.defaultContent,
+              name: `${defaultArea.area.name} - Hauptsektion`,
+              content: 'Detaillierte Informationen zu diesem Bereich...',
               isRequired: true
             },
             {
-              name: `${area.name} - Details`,
+              name: `${defaultArea.area.name} - Details`,
               content: 'Weitere Details zu diesem Bereich...',
               isRequired: false
             }
