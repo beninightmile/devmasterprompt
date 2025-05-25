@@ -202,7 +202,7 @@ export const createPromptActions = (set: any, get: any) => ({
     return { sections: updatedSections };
   }),
 
-  resetToDefault: () => {
+  resetToDefault: () => set(() => {
     const sections: PromptSection[] = [];
     
     // Add standard sections
@@ -239,9 +239,9 @@ export const createPromptActions = (set: any, get: any) => ({
       templateName: '',
       currentTemplateId: null,
     };
-  },
+  }),
   
-  clearAll: () => {
+  clearAll: () => set(() => {
     const sections: PromptSection[] = [];
     
     // Add standard sections
@@ -279,5 +279,5 @@ export const createPromptActions = (set: any, get: any) => ({
       templateName: '',
       currentTemplateId: null,
     };
-  }
+  })
 });
