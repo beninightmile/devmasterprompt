@@ -1,23 +1,57 @@
 
 import type { PromptSection } from '../types/prompt';
-import { createDefaultAreas, createDefaultSectionForArea } from '../services/prompt-parser';
+import { STANDARD_SECTIONS, DEFAULT_AREAS } from '../services/prompt-parser/constants';
 
 // Helper to get all areas
 const getAreas = (sections: PromptSection[]) => 
   sections.filter(section => section.isArea);
 
+// Helper to get the next order for a given level
+const getNextOrder = (sections: PromptSection[], level: number, parentId?: string) => {
+  const relevantSections = parentId 
+    ? sections.filter(s => s.parentId === parentId)
+    : sections.filter(s => s.level === level && !s.parentId);
+  
+  return Math.max(0, ...relevantSections.map(s => s.order)) + 1;
+};
+
 export const createPromptActions = (set: any, get: any) => ({
   initializeDefaultAreas: () => set((state: any) => {
     if (state.sections.length === 0) {
-      const areas = createDefaultAreas();
+      const sections: PromptSection[] = [];
       
-      // Create a default section for each area
-      const sectionsWithChildren = areas.flatMap(area => {
-        const childSection = createDefaultSectionForArea(area.id, area.name);
-        return [area, childSection];
+      // Add standard sections
+      STANDARD_SECTIONS.forEach(sectionTemplate => {
+        sections.push({
+          ...sectionTemplate,
+          id: crypto.randomUUID(),
+          content: ''
+        });
       });
       
-      return { sections: sectionsWithChildren };
+      // Add areas and their child sections
+      DEFAULT_AREAS.forEach(({ area, sections: areaSections }) => {
+        const areaId = crypto.randomUUID();
+        
+        // Add the area
+        sections.push({
+          ...area,
+          id: areaId,
+          content: ''
+        });
+        
+        // Add child sections
+        areaSections.forEach(sectionTemplate => {
+          sections.push({
+            ...sectionTemplate,
+            id: crypto.randomUUID(),
+            content: '',
+            parentId: areaId
+          });
+        });
+      });
+      
+      return { sections };
     }
     return {};
   }),
@@ -26,7 +60,7 @@ export const createPromptActions = (set: any, get: any) => ({
     const maxAreaOrder = Math.max(0, ...getAreas(state.sections).map(s => s.order));
     const newArea = { 
       ...area, 
-      order: maxAreaOrder + 10, // Increment by 10 to leave space
+      order: maxAreaOrder + 100,
       isArea: true,
       level: 1
     };
@@ -36,7 +70,7 @@ export const createPromptActions = (set: any, get: any) => ({
       id: crypto.randomUUID(),
       name: `${area.name} - Sektion`,
       content: '',
-      order: maxAreaOrder + 11,
+      order: 1,
       isRequired: false,
       level: 2,
       parentId: newArea.id
@@ -45,34 +79,34 @@ export const createPromptActions = (set: any, get: any) => ({
     return { sections: [...state.sections, newArea, childSection] };
   }),
   
-  addSection: (section: Omit<PromptSection, 'order'>, areaId?: string) => set((state: any) => {
-    // If areaId is provided, we're adding a section to an area
-    if (areaId) {
-      const area = state.sections.find((s: PromptSection) => s.id === areaId);
-      if (!area) return state; // If area doesn't exist, do nothing
+  addSection: (section: Omit<PromptSection, 'order'>, parentId?: string) => set((state: any) => {
+    let newSection: PromptSection;
+    
+    if (parentId) {
+      // Adding a section to an area
+      const area = state.sections.find((s: PromptSection) => s.id === parentId);
+      if (!area) return state;
       
-      const areaSections = state.sections.filter((s: PromptSection) => s.parentId === areaId);
-      const maxOrder = Math.max(0, ...areaSections.map(s => s.order));
+      const nextOrder = getNextOrder(state.sections, 2, parentId);
       
-      const newSection = { 
+      newSection = { 
         ...section, 
-        order: maxOrder + 1,
+        order: nextOrder,
         level: 2,
-        parentId: areaId
+        parentId
       };
-      
-      return { sections: [...state.sections, newSection] };
     } else {
-      // Add as a regular section (not under any area)
-      const maxOrder = Math.max(0, ...state.sections.map((s: PromptSection) => s.order));
-      const newSection = { 
+      // Adding an independent section
+      const nextOrder = getNextOrder(state.sections, section.level || 1);
+      
+      newSection = { 
         ...section, 
-        order: maxOrder + 1,
+        order: nextOrder,
         level: section.level || 1
       };
-      
-      return { sections: [...state.sections, newSection] };
     }
+    
+    return { sections: [...state.sections, newSection] };
   }),
   
   removeSection: (id: string) => set((state: any) => {
@@ -101,7 +135,6 @@ export const createPromptActions = (set: any, get: any) => ({
     if (sectionToRemove.parentId) {
       const siblingCount = state.sections.filter((s: PromptSection) => s.parentId === sectionToRemove.parentId).length;
       if (siblingCount <= 1) {
-        // Don't delete the last child section
         return state;
       }
     }
@@ -114,29 +147,134 @@ export const createPromptActions = (set: any, get: any) => ({
     };
   }),
 
+  // Enhanced reorder function that supports cross-area movement
+  reorderSections: (newOrder: string[]) => set((state: any) => {
+    const sectionsMap = new Map(state.sections.map((s: PromptSection) => [s.id, s]));
+    const reorderedSections: PromptSection[] = [];
+    
+    newOrder.forEach((id, index) => {
+      const section = sectionsMap.get(id);
+      if (section) {
+        reorderedSections.push({
+          ...section,
+          order: index + 1
+        });
+      }
+    });
+    
+    // Add any sections that weren't in the reorder list
+    state.sections.forEach((section: PromptSection) => {
+      if (!newOrder.includes(section.id)) {
+        reorderedSections.push(section);
+      }
+    });
+    
+    return { sections: reorderedSections };
+  }),
+
+  // Move section to different area or make independent
+  moveSectionToArea: (sectionId: string, targetAreaId?: string) => set((state: any) => {
+    const updatedSections = state.sections.map((section: PromptSection) => {
+      if (section.id === sectionId) {
+        if (targetAreaId) {
+          // Moving to an area
+          const nextOrder = getNextOrder(state.sections, 2, targetAreaId);
+          return {
+            ...section,
+            parentId: targetAreaId,
+            level: 2,
+            order: nextOrder
+          };
+        } else {
+          // Making independent
+          const nextOrder = getNextOrder(state.sections, 1);
+          return {
+            ...section,
+            parentId: undefined,
+            level: 1,
+            order: nextOrder
+          };
+        }
+      }
+      return section;
+    });
+    
+    return { sections: updatedSections };
+  }),
+
   resetToDefault: () => {
-    const defaultAreas = createDefaultAreas();
-    const defaultSections = defaultAreas.flatMap(area => {
-      const childSection = createDefaultSectionForArea(area.id, area.name);
-      return [area, childSection];
+    const sections: PromptSection[] = [];
+    
+    // Add standard sections
+    STANDARD_SECTIONS.forEach(sectionTemplate => {
+      sections.push({
+        ...sectionTemplate,
+        id: crypto.randomUUID(),
+        content: ''
+      });
+    });
+    
+    // Add areas and their child sections
+    DEFAULT_AREAS.forEach(({ area, sections: areaSections }) => {
+      const areaId = crypto.randomUUID();
+      
+      sections.push({
+        ...area,
+        id: areaId,
+        content: ''
+      });
+      
+      areaSections.forEach(sectionTemplate => {
+        sections.push({
+          ...sectionTemplate,
+          id: crypto.randomUUID(),
+          content: '',
+          parentId: areaId
+        });
+      });
     });
     
     set({ 
-      sections: defaultSections,
+      sections,
       templateName: '',
       currentTemplateId: null,
     });
   },
   
   clearAll: () => {
-    const defaultAreas = createDefaultAreas();
-    const defaultSections = defaultAreas.flatMap(area => {
-      const childSection = createDefaultSectionForArea(area.id, area.name);
-      return [area, childSection];
+    const sections: PromptSection[] = [];
+    
+    // Add standard sections
+    STANDARD_SECTIONS.forEach(sectionTemplate => {
+      sections.push({
+        ...sectionTemplate,
+        id: crypto.randomUUID(),
+        content: ''
+      });
+    });
+    
+    // Add areas and their child sections
+    DEFAULT_AREAS.forEach(({ area, sections: areaSections }) => {
+      const areaId = crypto.randomUUID();
+      
+      sections.push({
+        ...area,
+        id: areaId,
+        content: ''
+      });
+      
+      areaSections.forEach(sectionTemplate => {
+        sections.push({
+          ...sectionTemplate,
+          id: crypto.randomUUID(),
+          content: '',
+          parentId: areaId
+        });
+      });
     });
     
     set({ 
-      sections: defaultSections,
+      sections,
       inspirationItems: [],
       templateName: '',
       currentTemplateId: null,

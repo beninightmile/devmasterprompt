@@ -1,135 +1,132 @@
 
-/**
- * Constants and default data for the prompt parser
- */
+import { PromptSection } from '@/types/prompt';
 
-/**
- * Define standard sections that should appear before areas
- */
-export const STANDARD_SECTIONS = [
+// Standard sections that appear at the top level
+export const STANDARD_SECTIONS: Omit<PromptSection, 'id' | 'content'>[] = [
   {
-    id: 'standard_1',
     name: 'Projektname',
-    prefix: '@@Standard_1',
-    defaultContent: 'Geben Sie hier den Namen des Projekts ein.',
     order: 1,
+    isRequired: false,
+    level: 1
   },
   {
-    id: 'standard_2',
     name: 'Beschreibung',
-    prefix: '@@Standard_2',
-    defaultContent: 'Beschreiben Sie hier Ihr Projekt in wenigen Sätzen.',
     order: 2,
+    isRequired: false,
+    level: 1
   },
   {
-    id: 'standard_3',
-    name: 'Ziel',
-    prefix: '@@Standard_3',
-    defaultContent: 'Definieren Sie hier das Hauptziel des Projekts.',
+    name: 'Zielsetzung und unveränderliche Regeln',
     order: 3,
+    isRequired: false,
+    level: 1
   },
+  {
+    name: 'Referenz UI',
+    order: 4,
+    isRequired: false,
+    level: 1
+  }
 ];
 
-/**
- * Define default areas for new prompt
- */
-export const DEFAULT_AREAS = [
+// Default areas with their child sections
+export const DEFAULT_AREAS: { area: Omit<PromptSection, 'id' | 'content'>; sections: Omit<PromptSection, 'id' | 'content' | 'parentId'>[] }[] = [
   {
-    id: 'core_1',
-    name: 'Technologie-Stack & Tooling',
-    prefix: '@@Core_1',
-    defaultContent: 'Beschreiben Sie hier den Technologie-Stack und die Tools für Ihr Projekt.',
-    order: 10,
+    area: {
+      name: 'Technologie Stack und Tooling',
+      order: 100,
+      isRequired: false,
+      level: 1,
+      isArea: true
+    },
+    sections: [
+      {
+        name: 'Technologie-Stack',
+        order: 1,
+        isRequired: false,
+        level: 2
+      },
+      {
+        name: 'Tooling',
+        order: 2,
+        isRequired: false,
+        level: 2
+      }
+    ]
   },
   {
-    id: 'core_2',
-    name: 'Projektstruktur & Architekturprinzipien',
-    prefix: '@@Core_2',
-    defaultContent: 'Beschreiben Sie hier die Projektstruktur und Architekturprinzipien.',
-    order: 20,
+    area: {
+      name: 'Architektur und Standards',
+      order: 200,
+      isRequired: false,
+      level: 1,
+      isArea: true
+    },
+    sections: [
+      {
+        name: 'Projektstruktur',
+        order: 1,
+        isRequired: false,
+        level: 2
+      },
+      {
+        name: 'Architekturprinzipien',
+        order: 2,
+        isRequired: false,
+        level: 2
+      }
+    ]
   },
   {
-    id: 'core_3',
-    name: 'UI-System & Design-Konventionen',
-    prefix: '@@Core_3',
-    defaultContent: 'Beschreiben Sie hier das UI-System und Design-Konventionen.',
-    order: 30,
+    area: {
+      name: 'UI/UX Design',
+      order: 300,
+      isRequired: false,
+      level: 1,
+      isArea: true
+    },
+    sections: [
+      {
+        name: 'UI-System',
+        order: 1,
+        isRequired: false,
+        level: 2
+      },
+      {
+        name: 'Design-Konventionen',
+        order: 2,
+        isRequired: false,
+        level: 2
+      }
+    ]
   },
   {
-    id: 'core_4',
-    name: 'Security, Authentifizierung & Rollenmanagement',
-    prefix: '@@Core_4',
-    defaultContent: 'Beschreiben Sie hier die Sicherheitsrichtlinien, Authentifizierung und das Rollenmanagement.',
-    order: 40,
-  },
-  {
-    id: 'core_5',
-    name: 'Standard-Routing & Seitenstruktur',
-    prefix: '@@Core_5',
-    defaultContent: 'Beschreiben Sie hier das Routing und die Seitenstruktur.',
-    order: 50,
-  },
-  {
-    id: 'core_6',
-    name: 'Kernmodule & Funktionalitäten (Immer enthalten)',
-    prefix: '@@Core_6',
-    defaultContent: 'Beschreiben Sie hier die Kernmodule und Funktionalitäten.',
-    order: 60,
-  },
-  {
-    id: 'core_7',
-    name: 'Admin Control System (ACS) - Systemweit (für Superadmins)',
-    prefix: '@@Core_7',
-    defaultContent: 'Beschreiben Sie hier das Admin Control System.',
-    order: 70,
-  },
-  {
-    id: 'core_8',
-    name: 'Codequalität, Testing & CI/CD',
-    prefix: '@@Core_8',
-    defaultContent: 'Beschreiben Sie hier die Codequalität, Testing und CI/CD.',
-    order: 80,
-  },
-  {
-    id: 'core_9',
-    name: 'Fehlerbehandlung & Logging-Strategie',
-    prefix: '@@Core_9',
-    defaultContent: 'Beschreiben Sie hier die Fehlerbehandlung und Logging-Strategie.',
-    order: 90,
-  },
-  {
-    id: 'core_10',
-    name: 'Performance-Richtlinien',
-    prefix: '@@Core_10',
-    defaultContent: 'Beschreiben Sie hier die Performance-Richtlinien.',
-    order: 100,
-  },
-  {
-    id: 'core_11',
-    name: 'Mandantenfähigkeit (Multi-Tenancy) – Design',
-    prefix: '@@Core_11',
-    defaultContent: 'Beschreiben Sie hier die Mandantenfähigkeit.',
-    order: 110,
-  },
-  {
-    id: 'core_12',
-    name: 'Compliance & Legal',
-    prefix: '@@Core_12',
-    defaultContent: 'Beschreiben Sie hier die Compliance- und rechtlichen Anforderungen.',
-    order: 120,
-  },
-  {
-    id: 'core_13',
-    name: 'DevOps & Observability (Basis)',
-    prefix: '@@Core_13',
-    defaultContent: 'Beschreiben Sie hier DevOps und Observability.',
-    order: 130,
-  },
-  {
-    id: 'core_14',
-    name: 'Dokumentationsstandards und Wissenstransfer',
-    prefix: '@@Core_14',
-    defaultContent: 'Beschreiben Sie hier die Dokumentationsstandards und den Wissenstransfer.',
-    order: 140,
-  },
+    area: {
+      name: 'Sicherheit und Authentifizierung',
+      order: 400,
+      isRequired: false,
+      level: 1,
+      isArea: true
+    },
+    sections: [
+      {
+        name: 'Security',
+        order: 1,
+        isRequired: false,
+        level: 2
+      },
+      {
+        name: 'Authentifizierung',
+        order: 2,
+        isRequired: false,
+        level: 2
+      },
+      {
+        name: 'Rollenmanagement',
+        order: 3,
+        isRequired: false,
+        level: 2
+      }
+    ]
+  }
 ];
