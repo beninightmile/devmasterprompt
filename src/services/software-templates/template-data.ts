@@ -1,6 +1,6 @@
-
 import { SoftwareTemplate } from './types';
 import { createTemplateArea, createStandardSections } from './template-factory';
+import { promptEngineeringTemplates } from './prompt-templates';
 
 // Collection of predefined software templates using the hierarchical structure
 export const softwareTemplates: SoftwareTemplate[] = [
@@ -11,6 +11,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
     complexity: 'low',
     estimatedTime: '1-3 Tage',
     type: 'web_app_simple',
+    category: 'software',
     sections: [
       // Standard sections first
       ...createStandardSections(),
@@ -96,6 +97,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
     complexity: 'medium',
     estimatedTime: '1-3 Wochen',
     type: 'web_app_complex',
+    category: 'software',
     sections: [
       // Standard sections first
       ...createStandardSections(),
@@ -211,5 +213,8 @@ export const softwareTemplates: SoftwareTemplate[] = [
     get sectionCount() {
       return this.sections.filter(s => !s.isArea && s.level > 1).length;
     }
-  }
+  },
+  
+  // Include all prompt engineering templates
+  ...promptEngineeringTemplates
 ];

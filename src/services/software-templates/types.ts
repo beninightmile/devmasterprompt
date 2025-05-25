@@ -10,7 +10,14 @@ export type SoftwareTemplateType =
   | 'api_service'
   | 'fullstack_application'
   | 'enterprise_system'
-  | 'microservice_architecture';
+  | 'microservice_architecture'
+  | 'prompt_framework'
+  | 'zero_shot_template'
+  | 'few_shot_template'
+  | 'chain_of_thought_template'
+  | 'business_analysis_template'
+  | 'content_creation_template'
+  | 'marketing_template';
 
 // Interface for the software template metadata
 export interface SoftwareTemplate {
@@ -23,4 +30,5 @@ export interface SoftwareTemplate {
   sections: PromptSection[];
   areaCount: number; // Number of areas in the template
   sectionCount: number; // Number of non-area sections in the template
+  category?: 'software' | 'prompt_engineering'; // New field to categorize templates
 }
