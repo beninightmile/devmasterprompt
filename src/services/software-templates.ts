@@ -1,4 +1,3 @@
-
 import { PromptSection } from '@/types/prompt';
 import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser';
 
@@ -11,7 +10,11 @@ export type SoftwareTemplateType =
   | 'api_service'
   | 'fullstack_application'
   | 'enterprise_system'
-  | 'microservice_architecture';
+  | 'microservice_architecture'
+  | 'zero_shot_template'
+  | 'roses_framework'
+  | 'chain_of_thought'
+  | 'prompt_framework';
 
 // Interface for the software template metadata
 export interface SoftwareTemplate {
@@ -21,6 +24,7 @@ export interface SoftwareTemplate {
   complexity: 'low' | 'medium' | 'high' | 'enterprise';
   estimatedTime: string;  // "3-5 days", "2-4 weeks", etc.
   type: SoftwareTemplateType;
+  category: 'software' | 'prompt_engineering';  // Added category property
   sections: PromptSection[];
   areaCount: number; // Number of areas in the template
   sectionCount: number; // Number of non-area sections in the template
@@ -86,6 +90,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
     complexity: 'low',
     estimatedTime: '1-3 Tage',
     type: 'web_app_simple',
+    category: 'software',
     sections: [
       // Standard sections first
       ...createStandardSections(),
@@ -171,6 +176,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
     complexity: 'medium',
     estimatedTime: '1-3 Wochen',
     type: 'web_app_complex',
+    category: 'software',
     sections: [
       // Standard sections first
       ...createStandardSections(),
@@ -294,6 +300,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
     complexity: 'high',
     estimatedTime: '3-6 Wochen',
     type: 'fullstack_application',
+    category: 'software',
     sections: [
       // Standard sections first
       ...createStandardSections(),
@@ -330,18 +337,74 @@ export const softwareTemplates: SoftwareTemplate[] = [
   }
 ];
 
+// Sample prompt engineering templates
+export const promptEngineeringTemplates: SoftwareTemplate[] = [
+  {
+    id: 'zero_shot_framework',
+    name: 'Zero-Shot Prompt Framework',
+    description: 'Strukturiertes Framework für Zero-Shot Prompting mit Role, Context, Task, Format und Parameters.',
+    complexity: 'low',
+    estimatedTime: '15-30 Minuten',
+    type: 'zero_shot_template',
+    category: 'prompt_engineering',
+    sections: [
+      ...createTemplateArea({
+        id: 'zero_shot_role',
+        name: 'Role Definition',
+        content: 'Definiere die Rolle und Expertise der KI',
+        order: 1,
+        children: [
+          {
+            name: 'Expert Role',
+            content: 'Du bist ein [spezifische Rolle] mit [Jahre] Jahren Erfahrung in [Bereich].',
+            isRequired: true
+          }
+        ]
+      })
+    ],
+    get areaCount() { 
+      return this.sections.filter(s => s.isArea).length;
+    },
+    get sectionCount() {
+      return this.sections.filter(s => !s.isArea && s.level > 1).length;
+    }
+  }
+];
+
+// Combine all templates
+export const allTemplates: SoftwareTemplate[] = [
+  ...softwareTemplates,
+  ...promptEngineeringTemplates
+];
+
 /**
  * Get a software template by its id
  */
 export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  return softwareTemplates.find(template => template.id === id);
+  return allTemplates.find(template => template.id === id);
 }
 
 /**
  * Get all available software templates
  */
 export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return softwareTemplates;
+  return allTemplates;
+}
+
+/**
+ * Get software development templates
+ */
+export function getSoftwareTemplates(templates?: SoftwareTemplate[]): SoftwareTemplate[] {
+  const templatesArray = templates || allTemplates;
+  return templatesArray.filter(template => template.category === 'software');
+}
+
+/**
+ * Get prompt engineering templates
+ */
+export function getPromptEngineeringTemplates(templates?: SoftwareTemplate[]): SoftwareTemplate[] {
+  const templatesArray = templates || allTemplates;
+  return templatesArray.filter(template => template.category === 'prompt_engineering');
 }
 
 /**
