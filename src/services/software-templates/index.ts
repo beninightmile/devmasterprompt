@@ -1,6 +1,6 @@
 
 import { SoftwareTemplate, SoftwareTemplateType } from './types';
-import { softwareTemplates } from './template-data';
+import { allTemplates } from './template-data';
 import { 
   convertTemplateToSections, 
   countAreasInTemplate, 
@@ -27,26 +27,26 @@ export {
  * Get a software template by its id
  */
 export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  return softwareTemplates.find(template => template.id === id);
+  return allTemplates.find(template => template.id === id);
 }
 
 /**
  * Get all available software templates
  */
 export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return softwareTemplates;
+  return allTemplates;
 }
 
 /**
  * Get all software development templates
  */
 export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
-  return getSoftwareTemplates(softwareTemplates);
+  return getSoftwareTemplates(allTemplates);
 }
 
 /**
  * Get all prompt engineering templates
  */
 export function getAllPromptEngineeringTemplates(): SoftwareTemplate[] {
-  return getPromptEngineeringTemplates(softwareTemplates);
+  return getPromptEngineeringTemplates(allTemplates);
 }

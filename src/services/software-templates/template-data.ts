@@ -1,3 +1,4 @@
+
 import { SoftwareTemplate } from './types';
 import { createTemplateArea, createStandardSections } from './template-factory';
 import { promptEngineeringTemplates } from './prompt-templates';
@@ -18,7 +19,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Tech Stack Area
       ...createTemplateArea({
-        id: 'simple_tech_stack',
+        id: 'core_1',
         name: 'Technologie-Stack & Tooling',
         order: 10,
         children: [
@@ -42,7 +43,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Architecture Area
       ...createTemplateArea({
-        id: 'simple_architecture',
+        id: 'core_2',
         name: 'Projektstruktur & Architekturprinzipien',
         order: 20,
         children: [
@@ -56,7 +57,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // UI/UX Area
       ...createTemplateArea({
-        id: 'simple_ui',
+        id: 'core_3',
         name: 'UI-System & Design-Konventionen',
         order: 30,
         children: [
@@ -70,7 +71,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Core Features Area
       ...createTemplateArea({
-        id: 'simple_features',
+        id: 'core_6',
         name: 'Kernmodule & Funktionalitäten',
         order: 60,
         children: [
@@ -104,7 +105,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Tech Stack Area
       ...createTemplateArea({
-        id: 'complex_tech_stack',
+        id: 'core_1',
         name: 'Technologie-Stack & Tooling',
         order: 10,
         children: [
@@ -133,7 +134,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Architecture Area
       ...createTemplateArea({
-        id: 'complex_architecture',
+        id: 'core_2',
         name: 'Projektstruktur & Architekturprinzipien',
         order: 20,
         children: [
@@ -152,7 +153,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Security Area
       ...createTemplateArea({
-        id: 'complex_security',
+        id: 'core_4',
         name: 'Security, Authentifizierung & Rollenmanagement',
         order: 40,
         children: [
@@ -171,7 +172,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Routing Area
       ...createTemplateArea({
-        id: 'complex_routing',
+        id: 'core_5',
         name: 'Standard-Routing & Seitenstruktur',
         order: 50,
         children: [
@@ -190,7 +191,7 @@ export const softwareTemplates: SoftwareTemplate[] = [
       
       // Features Area
       ...createTemplateArea({
-        id: 'complex_features',
+        id: 'core_6',
         name: 'Kernmodule & Funktionalitäten',
         order: 60,
         children: [
@@ -213,8 +214,11 @@ export const softwareTemplates: SoftwareTemplate[] = [
     get sectionCount() {
       return this.sections.filter(s => !s.isArea && s.level > 1).length;
     }
-  },
-  
-  // Include all prompt engineering templates
+  }
+];
+
+// Combine all templates
+export const allTemplates: SoftwareTemplate[] = [
+  ...softwareTemplates,
   ...promptEngineeringTemplates
 ];
