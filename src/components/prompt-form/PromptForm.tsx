@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
 import PromptFormHeader from './PromptFormHeader';
-import { DragDropProvider } from './DragDropContext';
+import { DragDropProvider } from './DragDropProvider';
 import SectionManager from './SectionManager';
 import DialogManager from './DialogManager';
 import AutoSaveHandler from './AutoSaveHandler';
@@ -30,7 +30,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [newSectionDialogOpen, setNewSectionDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [softwareTemplateDialogOpen, setSoftwareTemplateDialogOpen] = useState(false);
+  const [promptTemplateDialogOpen, setPromptTemplateDialogOpen] = useState(false);
 
   const {
     handleAutoSave,
@@ -72,7 +72,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         onOpenSaveDialog={() => setSaveTemplateDialogOpen(true)}
         onOpenNewSectionDialog={() => setNewSectionDialogOpen(true)}
         onOpenUploadDialog={() => setUploadDialogOpen(true)}
-        onOpenSoftwareTemplateDialog={() => setSoftwareTemplateDialogOpen(true)}
+        onOpenSoftwareTemplateDialog={() => setPromptTemplateDialogOpen(true)}
         onClearAll={handleClearAll}
         autoSaveEnabled={autoSaveEnabled}
         autoSaveInterval={autoSaveInterval}
@@ -93,13 +93,13 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         newSectionDialogOpen={newSectionDialogOpen}
         saveTemplateDialogOpen={saveTemplateDialogOpen}
         uploadDialogOpen={uploadDialogOpen}
-        softwareTemplateDialogOpen={softwareTemplateDialogOpen}
+        softwareTemplateDialogOpen={promptTemplateDialogOpen}
         sections={sections}
         templateName={templateName}
         onNewSectionDialogChange={setNewSectionDialogOpen}
         onSaveTemplateDialogChange={setSaveTemplateDialogOpen}
         onUploadDialogChange={setUploadDialogOpen}
-        onSoftwareTemplateDialogChange={setSoftwareTemplateDialogOpen}
+        onSoftwareTemplateDialogChange={setPromptTemplateDialogOpen}
         onAddCustomSection={(name, areaId) => {
           handleAddCustomSection(name, areaId);
           setNewSectionDialogOpen(false);

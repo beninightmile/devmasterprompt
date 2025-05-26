@@ -1,32 +1,22 @@
 
-import React from 'react';
-import PromptSection from '@/components/PromptSection';
+import React, { useCallback } from 'react';
 import { PromptSection as PromptSectionType } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import DraggableSection from './DraggableSection';
 
 interface SectionListProps {
   sections: PromptSectionType[];
-  onDragOver: (id: string) => void;
-  onDragStart: (id: string) => void;
-  onDragEnd: () => void;
-  draggedSectionId?: string | null;
 }
 
-const SectionList: React.FC<SectionListProps> = ({
-  sections,
-  onDragOver,
-  onDragStart,
-  onDragEnd,
-  draggedSectionId,
-}) => {
-  const { addSection, updateSection, removeSection, moveSectionToArea, reorderSections } = usePromptStore();
+const SectionList: React.FC<SectionListProps> = ({ sections }) => {
+  const { addSection, reorderSections } = usePromptStore();
   
   // Sort sections by order
   const sortedSections = [...sections].sort((a, b) => a.order - b.order);
@@ -60,57 +50,36 @@ const SectionList: React.FC<SectionListProps> = ({
     }, areaId);
   };
 
-  // Move section up/down within same context
-  const moveSectionUp = (section: PromptSectionType) => {
-    const contextSections = section.parentId 
-      ? sortedSections.filter(s => s.parentId === section.parentId).sort((a, b) => a.order - b.order)
-      : standardSections;
-    
-    const currentIndex = contextSections.findIndex(s => s.id === section.id);
-    if (currentIndex > 0) {
-      const newOrder = [...contextSections];
-      [newOrder[currentIndex], newOrder[currentIndex - 1]] = [newOrder[currentIndex - 1], newOrder[currentIndex]];
-      
-      // Update orders
-      const updatedSections = sections.map(s => {
-        const newIndex = newOrder.findIndex(ns => ns.id === s.id);
-        if (newIndex !== -1) {
-          return { ...s, order: newIndex + 1 };
-        }
-        return s;
-      });
-      
-      reorderSections(updatedSections.map(s => s.id));
+  const moveSection = useCallback((
+    dragIndex: number, 
+    hoverIndex: number, 
+    dragParentId?: string, 
+    hoverParentId?: string
+  ) => {
+    // Get the relevant sections for the context
+    const contextSections = dragParentId 
+      ? sortedSections.filter(s => s.parentId === dragParentId)
+      : dragParentId === hoverParentId 
+        ? standardSections 
+        : sortedSections;
+        
+    if (dragIndex < 0 || hoverIndex < 0 || 
+        dragIndex >= contextSections.length || 
+        hoverIndex >= contextSections.length) {
+      return;
     }
-  };
 
-  const moveSectionDown = (section: PromptSectionType) => {
-    const contextSections = section.parentId 
-      ? sortedSections.filter(s => s.parentId === section.parentId).sort((a, b) => a.order - b.order)
-      : standardSections;
+    const newSections = [...contextSections];
+    const draggedSection = newSections[dragIndex];
     
-    const currentIndex = contextSections.findIndex(s => s.id === section.id);
-    if (currentIndex < contextSections.length - 1) {
-      const newOrder = [...contextSections];
-      [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
-      
-      // Update orders
-      const updatedSections = sections.map(s => {
-        const newIndex = newOrder.findIndex(ns => ns.id === s.id);
-        if (newIndex !== -1) {
-          return { ...s, order: newIndex + 1 };
-        }
-        return s;
-      });
-      
-      reorderSections(updatedSections.map(s => s.id));
-    }
-  };
-
-  // Move section to different area or make independent
-  const handleMoveSection = (sectionId: string, targetAreaId?: string) => {
-    moveSectionToArea(sectionId, targetAreaId);
-  };
+    // Remove dragged section and insert at new position
+    newSections.splice(dragIndex, 1);
+    newSections.splice(hoverIndex, 0, draggedSection);
+    
+    // Update orders and reorder
+    const updatedIds = newSections.map(s => s.id);
+    reorderSections(updatedIds);
+  }, [sortedSections, standardSections, reorderSections]);
 
   // Render standard sections first
   const renderStandardSections = () => {
@@ -121,58 +90,12 @@ const SectionList: React.FC<SectionListProps> = ({
         <h3 className="text-lg font-medium mb-3">Standardbereiche</h3>
         <div className="space-y-3">
           {standardSections.map((section, index) => (
-            <div key={section.id} className="relative group">
-              <div className="flex items-start gap-2">
-                <div className="flex flex-col gap-1 mt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => moveSectionUp(section)}
-                    disabled={index === 0}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <ArrowUp className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => moveSectionDown(section)}
-                    disabled={index === standardSections.length - 1}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <ArrowDown className="h-3 w-3" />
-                  </Button>
-                </div>
-                <div className="flex-1" onDragOver={() => onDragOver(section.id)}>
-                  <PromptSection
-                    id={section.id}
-                    name={section.name}
-                    content={section.content}
-                    isRequired={section.isRequired}
-                    level={section.level}
-                    isDragging={section.id === draggedSectionId}
-                    onDragStart={() => onDragStart(section.id)}
-                    onDragEnd={onDragEnd}
-                  />
-                </div>
-              </div>
-              
-              {/* Move to area options */}
-              <div className="ml-16 mt-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-muted-foreground">Verschieben nach:</span>
-                {areas.map(area => (
-                  <Button
-                    key={area.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleMoveSection(section.id, area.id)}
-                    className="h-6 px-2 text-xs"
-                  >
-                    {area.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            <DraggableSection
+              key={section.id}
+              section={section}
+              index={index}
+              onMove={moveSection}
+            />
           ))}
         </div>
       </div>
@@ -184,7 +107,7 @@ const SectionList: React.FC<SectionListProps> = ({
       {renderStandardSections()}
       
       {/* Render areas with their child sections */}
-      {areas.map(area => {
+      {areas.map((area, areaIndex) => {
         // Get child sections for this area
         const childSections = sortedSections.filter(
           section => section.parentId === area.id
@@ -198,12 +121,14 @@ const SectionList: React.FC<SectionListProps> = ({
             className="border rounded-lg overflow-hidden"
           >
             <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left bg-muted hover:bg-muted/80">
-              <div className="flex items-center space-x-2">
-                <h3 className="text-lg font-medium">{area.name}</h3>
-                <span className="text-sm text-muted-foreground">
-                  ({childSections.length} {childSections.length === 1 ? 'Sektion' : 'Sektionen'})
-                </span>
-              </div>
+              <DraggableSection
+                section={area}
+                index={areaIndex}
+                onMove={moveSection}
+              />
+              <span className="text-sm text-muted-foreground ml-4">
+                ({childSections.length} {childSections.length === 1 ? 'Sektion' : 'Sektionen'})
+              </span>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
@@ -217,68 +142,13 @@ const SectionList: React.FC<SectionListProps> = ({
               )}
               <div className="p-4 space-y-4">
                 {childSections.map((section, index) => (
-                  <div key={section.id} className="relative group">
-                    <div className="flex items-start gap-2">
-                      <div className="flex flex-col gap-1 mt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveSectionUp(section)}
-                          disabled={index === 0}
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveSectionDown(section)}
-                          disabled={index === childSections.length - 1}
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div
-                        className="flex-1 ml-4"
-                        onDragOver={() => onDragOver(section.id)}
-                      >
-                        <PromptSection
-                          id={section.id}
-                          name={section.name}
-                          content={section.content}
-                          isRequired={section.isRequired}
-                          level={section.level}
-                          isDragging={section.id === draggedSectionId}
-                          onDragStart={() => onDragStart(section.id)}
-                          onDragEnd={onDragEnd}
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Move to other areas or make independent */}
-                    <div className="ml-20 mt-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-xs text-muted-foreground">Verschieben:</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleMoveSection(section.id)}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Unabhängig machen
-                      </Button>
-                      {areas.filter(a => a.id !== area.id).map(otherArea => (
-                        <Button
-                          key={otherArea.id}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleMoveSection(section.id, otherArea.id)}
-                          className="h-6 px-2 text-xs"
-                        >
-                          → {otherArea.name}
-                        </Button>
-                      ))}
-                    </div>
+                  <div key={section.id} className="ml-4">
+                    <DraggableSection
+                      section={section}
+                      index={index}
+                      onMove={moveSection}
+                      parentId={area.id}
+                    />
                   </div>
                 ))}
                 

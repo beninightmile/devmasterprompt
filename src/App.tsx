@@ -4,10 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import Layout from "./components/Layout";
+import Index from "./pages/Index";
 import BuilderPage from "./pages/builder";
-import TemplatesPage from "./pages/templates";
+import SavedPromptsPage from "./pages/saved-prompts";
 import PreviewPage from "./pages/preview";
 import NotFound from "./pages/NotFound";
 
@@ -22,7 +22,7 @@ const App = () => (
         <Layout>
           <Routes>
             <Route path="/" element={<BuilderPage />} />
-            <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/saved-prompts" element={<SavedPromptsPage />} />
             <Route path="/preview" element={<PreviewPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

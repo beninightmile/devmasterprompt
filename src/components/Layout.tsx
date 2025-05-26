@@ -3,118 +3,75 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutTemplate, 
-  FileText, 
-  Settings, 
-  PenTool, 
-  Moon, 
-  Sun
-} from 'lucide-react';
-import { Toaster } from "@/components/ui/toaster";
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import RightSidebar from '@/components/RightSidebar';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { FileText, Save, Eye } from 'lucide-react';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [isDarkMode, setIsDarkMode] = React.useState(
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = React.useState(false);
-  
-  React.useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+
+  const navItems = [
+    {
+      href: '/',
+      label: 'Prompt Builder',
+      icon: FileText,
+      active: location.pathname === '/'
+    },
+    {
+      href: '/saved-prompts',
+      label: 'Gespeicherte Prompts',
+      icon: Save,
+      active: location.pathname === '/saved-prompts'
+    },
+    {
+      href: '/preview',
+      label: 'Vorschau',
+      icon: Eye,
+      active: location.pathname === '/preview'
     }
-  }, [isDarkMode]);
-  
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen);
-  };
-
-  // Add keyboard shortcuts
-  useKeyboardShortcuts({
-    onToggleRightSidebar: toggleRightSidebar,
-  });
-  
-  const navigation = [
-    { name: 'Builder', href: '/', icon: PenTool },
-    { name: 'Templates', href: '/templates', icon: LayoutTemplate },
-    { name: 'Preview', href: '/preview', icon: FileText },
   ];
-  
-  return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <div className="w-16 bg-card border-r flex flex-col items-center py-4">
-        <div className="flex-1 flex flex-col items-center space-y-4 mt-6">
-          {navigation.map((item) => {
-            const isActive = 
-              (item.href === '/' && location.pathname === '/') || 
-              (item.href !== '/' && location.pathname.startsWith(item.href));
-              
-            return (
-              <Tooltip key={item.name}>
-                <TooltipTrigger asChild>
-                  <Link to={item.href}>
-                    <Button
-                      variant={isActive ? "default" : "ghost"}
-                      size="icon"
-                      className={cn(
-                        "h-10 w-10",
-                        isActive && "bg-primary text-primary-foreground"
-                      )}
-                    >
-                      <item.icon size={20} />
-                      <span className="sr-only">{item.name}</span>
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">{item.name}</TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
-        
-        <div className="mt-auto">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="h-10 w-10"
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Toggle theme</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-      
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
-        <main>
-          {children}
-        </main>
-      </div>
 
-      {/* Right Sidebar */}
-      <RightSidebar 
-        isOpen={isRightSidebarOpen} 
-        onToggle={toggleRightSidebar} 
-      />
-      
-      <Toaster />
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center space-x-4">
+          <Link to="/" className="flex items-center space-x-2">
+            <FileText className="h-6 w-6" />
+            <span className="font-bold text-xl">Prompt Builder</span>
+          </Link>
+          
+          <nav className="flex items-center space-x-1 ml-6">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.href}
+                  variant={item.active ? "default" : "ghost"}
+                  size="sm"
+                  asChild
+                  className={cn(
+                    "flex items-center gap-2",
+                    item.active && "bg-primary text-primary-foreground"
+                  )}
+                >
+                  <Link to={item.href}>
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </Button>
+              );
+            })}
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1">
+        {children}
+      </main>
     </div>
   );
 };

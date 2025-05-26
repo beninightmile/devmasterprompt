@@ -1,10 +1,10 @@
 
 import React from 'react';
+import { PromptSection } from '@/types/prompt';
 import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
-import UploadContentDialog from './upload-dialog/UploadContentDialog';
-import SoftwareTemplateDialog from './SoftwareTemplateDialog';
-import { PromptSection } from '@/types/prompt';
+import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
+import PromptTemplateDialog from './PromptTemplateDialog';
 
 interface DialogManagerProps {
   newSectionDialogOpen: boolean;
@@ -17,7 +17,7 @@ interface DialogManagerProps {
   onSaveTemplateDialogChange: (open: boolean) => void;
   onUploadDialogChange: (open: boolean) => void;
   onSoftwareTemplateDialogChange: (open: boolean) => void;
-  onAddCustomSection: (sectionName: string, areaId?: string) => void;
+  onAddCustomSection: (name: string, areaId?: string) => void;
   onAddExistingSection: (template: any) => void;
   onImportSections: (sections: PromptSection[]) => void;
   onApplySoftwareTemplate: (sections: PromptSection[]) => void;
@@ -39,9 +39,6 @@ const DialogManager: React.FC<DialogManagerProps> = ({
   onImportSections,
   onApplySoftwareTemplate,
 }) => {
-  // Filter out areas
-  const areas = sections.filter(section => section.isArea);
-  
   return (
     <>
       <NewSectionDialog 
@@ -49,23 +46,21 @@ const DialogManager: React.FC<DialogManagerProps> = ({
         onOpenChange={onNewSectionDialogChange}
         onAddCustomSection={onAddCustomSection}
         onAddExistingSection={onAddExistingSection}
-        existingSections={sections.map(section => section.id)}
-        areas={areas}
       />
-
-      <SaveTemplateFormDialog 
+      
+      <SaveTemplateFormDialog
         open={saveTemplateDialogOpen}
         onOpenChange={onSaveTemplateDialogChange}
         initialName={templateName}
       />
       
-      <UploadContentDialog
+      <UploadPromptDialog
         open={uploadDialogOpen}
         onOpenChange={onUploadDialogChange}
         onImportSections={onImportSections}
       />
-
-      <SoftwareTemplateDialog
+      
+      <PromptTemplateDialog
         open={softwareTemplateDialogOpen}
         onOpenChange={onSoftwareTemplateDialogChange}
         onSelectTemplate={onApplySoftwareTemplate}
