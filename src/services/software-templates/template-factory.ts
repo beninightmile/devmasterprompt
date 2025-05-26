@@ -1,6 +1,14 @@
 
 import { PromptSection } from '@/types/prompt';
-import { STANDARD_SECTIONS } from '../prompt-parser/constants';
+
+// Standard sections that appear in most software templates
+export const STANDARD_SECTIONS = [
+  { name: 'Projektziel & Vision', order: 1 },
+  { name: 'Zielgruppe & Nutzergruppen', order: 2 },
+  { name: 'Funktionale Anforderungen', order: 3 },
+  { name: 'Nicht-funktionale Anforderungen', order: 4 },
+  { name: 'Technische Einschränkungen', order: 5 }
+];
 
 // Helper function to create an area with children
 export const createTemplateArea = (areaProps: {
