@@ -7,12 +7,11 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Clock, Settings } from 'lucide-react';
-import { usePromptStore } from '@/store/promptStore';
 
 interface AutoSaveSettingsProps {
   enabled: boolean;
   interval: number;
-  lastSaveTime: Date | null; // Changed from lastSave to lastSaveTime to match usage in PromptFormHeader
+  lastSaveTime: Date | null;
   onToggle: (enabled: boolean) => void;
   onIntervalChange: (minutes: number) => void;
 }
@@ -20,7 +19,7 @@ interface AutoSaveSettingsProps {
 const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
   enabled,
   interval,
-  lastSaveTime, // Changed from lastSave to lastSaveTime
+  lastSaveTime,
   onToggle,
   onIntervalChange,
 }) => {
