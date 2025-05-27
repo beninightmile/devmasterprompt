@@ -58,7 +58,7 @@ export const usePromptFormHandlers = () => {
           isRequired: section.isRequired || false,
           isArea: section.isArea ?? false,
           level: section.level ?? 1,
-          parentId: section.parentId ?? undefined,
+          parentId: section.parentId || undefined,
         });
         importCount++;
       }

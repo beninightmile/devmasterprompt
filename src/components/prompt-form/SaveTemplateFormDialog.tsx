@@ -22,7 +22,7 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
   onOpenChange,
   initialName = '',
 }) => {
-  const { sections, templateName, setTemplateName } = usePromptStore();
+  const { templateName, setTemplateName } = usePromptStore();
   const { toast } = useToast();
   
   const [name, setName] = useState(initialName || templateName);

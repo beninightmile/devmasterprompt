@@ -1,3 +1,4 @@
+
 /**
  * Core types for the prompt parser system
  */
@@ -11,7 +12,7 @@ export interface DetectedSection {
   content: string;
   level?: number;
   order?: number;
-  parentId?: string;
+  parentId?: string | undefined;
   isArea?: boolean;
   blockPrefix?: string; // For prefixed sections like @@Core_1:
   numberPrefix?: string; // For numbered sections like "1." or "1.1"

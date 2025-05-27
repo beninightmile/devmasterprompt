@@ -31,7 +31,8 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
     accept: 'SECTION',
     hover: (draggedItem: { id: string; index: number; parentId?: string }) => {
       if (draggedItem.index !== index || draggedItem.parentId !== parentId) {
-        reorderSections(draggedItem.index, index);
+        const sectionIds = usePromptStore.getState().sections.map(s => s.id);
+        reorderSections(sectionIds);
         draggedItem.index = index;
       }
     },

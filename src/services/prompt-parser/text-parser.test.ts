@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { parseTextIntoSections } from './text-parser';
 
 // Mock crypto.randomUUID
-vi.spyOn(crypto, 'randomUUID').mockReturnValue('mocked-uuid');
+vi.spyOn(crypto, 'randomUUID').mockReturnValue('mocked-uuid-for-tests' as `${string}-${string}-${string}-${string}-${string}`);
 
 describe('parseTextIntoSections', () => {
   beforeEach(() => {
@@ -28,7 +28,7 @@ Provide clear output.`;
         name: 'Role',
         content: 'You are a helpful assistant.',
         level: 1,
-        id: 'mocked-uuid'
+        id: 'mocked-uuid-for-tests'
       })
     );
     expect(result[1]).toEqual(
@@ -128,7 +128,7 @@ This is a sub heading.`;
         content: '',
         level: 1,
         order: 0,
-        id: 'mocked-uuid'
+        id: 'mocked-uuid-for-tests'
       })
     ]);
 

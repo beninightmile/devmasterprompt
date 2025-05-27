@@ -1,3 +1,4 @@
+
 import { DetectedSection } from './types';
 import { PromptSection } from '@/types/prompt';
 import { defaultPromptSections } from '@/core/registry';
@@ -28,8 +29,6 @@ export const matchWithDefaultSections = (detectedSections: DetectedSection[]): P
   const mappedSections: PromptSection[] = [];
 
   detectedSections.forEach((detected, order) => {
-    const normalizedName = normalizeNameForMatching(detected.name);
-    
     // Attempt to match with default sections
     let matchedDefault = defaultPromptSections.find(defaultSection => {
       return isSimilarSection(detected, defaultSection);
@@ -43,7 +42,7 @@ export const matchWithDefaultSections = (detectedSections: DetectedSection[]): P
         order,
         isRequired: matchedDefault.required,
         level: detected.level ?? 1,
-        parentId: detected.parentId ?? undefined,
+        parentId: detected.parentId || undefined,
         isArea: detected.isArea ?? false,
       });
       return;
@@ -56,7 +55,7 @@ export const matchWithDefaultSections = (detectedSections: DetectedSection[]): P
       order,
       isRequired: false,
       level: detected.level ?? 1,
-      parentId: detected.parentId ?? undefined,
+      parentId: detected.parentId || undefined,
       isArea: detected.isArea ?? false,
     });
   });

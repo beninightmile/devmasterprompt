@@ -7,9 +7,7 @@ import {
   parseColonSeparatedSections,
   parseParagraphs,
   parseComplexDocument,
-  parseMixedFormatSections,
-  parseCombinedFormatSections,
-  enhanceHierarchicalStructure
+  parseCombinedFormatSections
 } from './parsers';
 
 /**
