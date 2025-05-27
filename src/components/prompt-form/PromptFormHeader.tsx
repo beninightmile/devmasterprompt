@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Save, Eye, Plus, Upload, Template, Trash2, Clock } from 'lucide-react';
+import { Save, Eye, Plus, Upload, FileTemplate, Trash2, Clock } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
 import TokenCounter from '@/components/TokenCounter';
 import AutoSaveSettings from './AutoSaveSettings';
@@ -102,7 +102,7 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
           Sektion hinzufügen
         </Button>
         <Button variant="outline" size="sm" onClick={onOpenSoftwareTemplateDialog}>
-          <Template className="h-4 w-4 mr-2" />
+          <FileTemplate className="h-4 w-4 mr-2" />
           Prompt Templates
         </Button>
         <Button variant="outline" size="sm" onClick={onOpenUploadDialog}>
@@ -117,10 +117,10 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
 
       {/* Auto-save Settings */}
       <AutoSaveSettings
-        autoSaveEnabled={autoSaveEnabled}
-        autoSaveInterval={autoSaveInterval}
-        onAutoSaveToggle={onAutoSaveToggle}
-        onAutoSaveIntervalChange={onAutoSaveIntervalChange}
+        enabled={autoSaveEnabled}
+        interval={autoSaveInterval}
+        onToggle={onAutoSaveToggle}
+        onIntervalChange={onAutoSaveIntervalChange}
         onManualSave={onAutoSave}
         templateName={templateName}
       />

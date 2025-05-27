@@ -1,16 +1,8 @@
 
 import React from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import { PromptSection as PromptSectionType } from '@/types/prompt';
 import PromptSection from '@/components/PromptSection';
 import { usePromptStore } from '@/store/promptStore';
-
-interface DragItem {
-  id: string;
-  type: 'section' | 'area';
-  index: number;
-  parentId?: string;
-}
 
 interface DraggableSectionProps {
   section: PromptSectionType;
@@ -27,74 +19,34 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
 }) => {
   const { moveSectionToArea } = usePromptStore();
   
-  const [{ isDragging }, drag] = useDrag({
-    type: section.isArea ? 'area' : 'section',
-    item: { 
-      id: section.id, 
-      type: section.isArea ? 'area' : 'section',
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      id: section.id,
       index,
-      parentId 
-    } as DragItem,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
+      parentId
+    }));
+  };
 
-  const [{ isOver }, drop] = useDrop({
-    accept: ['section', 'area'],
-    hover: (item: DragItem) => {
-      if (!ref.current) {
-        return;
-      }
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
 
-      const dragIndex = item.index;
-      const hoverIndex = index;
-      const dragParentId = item.parentId;
-      const hoverParentId = parentId;
-
-      // Don't replace items with themselves
-      if (dragIndex === hoverIndex && dragParentId === hoverParentId) {
-        return;
-      }
-
-      // Don't allow areas to be dropped into sections
-      if (item.type === 'area' && section.level && section.level > 1) {
-        return;
-      }
-
-      // Don't allow sections to be dropped into themselves
-      if (item.id === section.id) {
-        return;
-      }
-
-      onMove(dragIndex, hoverIndex, dragParentId, hoverParentId);
-      
-      // Update the item for continued monitoring
-      item.index = hoverIndex;
-      item.parentId = hoverParentId;
-    },
-    drop: (item: DragItem) => {
-      // Handle final drop logic if needed
-      if (item.parentId !== parentId) {
-        moveSectionToArea(item.id, parentId);
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  });
-
-  const ref = React.useRef<HTMLDivElement>(null);
-  drag(drop(ref));
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    
+    if (data.id !== section.id) {
+      onMove(data.index, index, data.parentId, parentId);
+    }
+  };
 
   return (
     <div
-      ref={ref}
-      className={`transition-all duration-200 ${
-        isDragging ? 'opacity-50 scale-95' : ''
-      } ${
-        isOver ? 'border-2 border-primary border-dashed' : ''
-      }`}
+      draggable
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="transition-all duration-200"
     >
       <PromptSection
         id={section.id}
@@ -103,7 +55,6 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         isRequired={section.isRequired}
         level={section.level}
         isArea={section.isArea}
-        isDragging={isDragging}
       />
     </div>
   );

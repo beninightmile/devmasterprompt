@@ -5,6 +5,7 @@ import NewSectionDialog from './NewSectionDialog';
 import SaveTemplateFormDialog from './SaveTemplateFormDialog';
 import UploadPromptDialog from './upload-dialog/UploadPromptDialog';
 import PromptTemplateDialog from './PromptTemplateDialog';
+import { usePromptStore } from '@/store/promptStore';
 
 interface DialogManagerProps {
   newSectionDialogOpen: boolean;
@@ -39,6 +40,14 @@ const DialogManager: React.FC<DialogManagerProps> = ({
   onImportSections,
   onApplySoftwareTemplate,
 }) => {
+  const { sections: allSections } = usePromptStore();
+  
+  // Get existing section IDs
+  const existingSections = allSections.map(section => section.id);
+  
+  // Get areas for the NewSectionDialog
+  const areas = allSections.filter(section => section.isArea);
+
   return (
     <>
       <NewSectionDialog 
@@ -46,6 +55,8 @@ const DialogManager: React.FC<DialogManagerProps> = ({
         onOpenChange={onNewSectionDialogChange}
         onAddCustomSection={onAddCustomSection}
         onAddExistingSection={onAddExistingSection}
+        existingSections={existingSections}
+        areas={areas}
       />
       
       <SaveTemplateFormDialog
