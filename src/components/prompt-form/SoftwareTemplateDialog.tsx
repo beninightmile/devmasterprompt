@@ -63,7 +63,7 @@ const SoftwareTemplateDialog: React.FC<SoftwareTemplateDialogProps> = ({
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-1">
-                        {template.tags?.map(tag => (
+                        {template.tags?.map((tag: string) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
                           </Badge>
@@ -92,7 +92,7 @@ const SoftwareTemplateDialog: React.FC<SoftwareTemplateDialogProps> = ({
                 
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-3">
-                    {selectedTemplateData.sections.map((s, index) => (
+                    {selectedTemplateData.sections.map((s: PromptSection, index: number) => (
                       <Card key={index}>
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm flex items-center gap-2">

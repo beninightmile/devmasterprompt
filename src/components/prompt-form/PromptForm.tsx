@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
+import { autoSaveTemplate } from '@/services/template-service';
+import { useToast } from '@/hooks/use-toast';
 import PromptFormHeader from './PromptFormHeader';
 import { DragDropProvider } from './DragDropProvider';
 import SectionManager from './SectionManager';
@@ -32,8 +34,9 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [promptTemplateDialogOpen, setPromptTemplateDialogOpen] = useState(false);
 
+  const { toast } = useToast();
+
   const {
-    handleAutoSave,
     handleAddCustomSection,
     handleAddExistingSection,
     handleClearAll,
@@ -50,6 +53,21 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
       initializeDefaultAreas();
     }
   }, [initializeDefaultAreas, sections.length]);
+
+  const handleAutoSave = () => {
+    if (!templateName.trim()) {
+      return; // Don't auto-save if no template name provided
+    }
+    
+    const savedId = autoSaveTemplate();
+    if (savedId) {
+      toast({
+        title: "Auto-saved",
+        description: `"${templateName}" has been automatically saved.`,
+        duration: 3000,
+      });
+    }
+  };
   
   const handleTogglePreview = (value: boolean) => {
     if (onPreviewToggle) {

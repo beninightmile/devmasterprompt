@@ -1,7 +1,6 @@
+
 import { useEffect, useRef } from 'react';
 import { usePromptStore } from '@/store/promptStore';
-import { autoSaveTemplate } from '@/services/template-service';
-import { useToast } from '@/hooks/use-toast';
 
 interface AutoSaveHandlerProps {
   onAutoSave: () => void;

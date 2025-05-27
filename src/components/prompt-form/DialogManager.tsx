@@ -29,7 +29,6 @@ const DialogManager: React.FC<DialogManagerProps> = ({
   saveTemplateDialogOpen,
   uploadDialogOpen,
   softwareTemplateDialogOpen,
-  sections,
   templateName,
   onNewSectionDialogChange,
   onSaveTemplateDialogChange,

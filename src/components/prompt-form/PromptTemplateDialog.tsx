@@ -1,93 +1,131 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { usePromptStore } from '@/store/promptStore';
-import { generatePromptText } from '@/services/prompt-service';
-import CopyButton from '../CopyButton';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { getSoftwareTemplates } from '@/services/software-templates';
+import { PromptSection } from '@/types/prompt';
 
 interface PromptTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sections: any[];
-  templateName: string;
+  onSelectTemplate: (sections: PromptSection[]) => void;
 }
 
 const PromptTemplateDialog: React.FC<PromptTemplateDialogProps> = ({
   open,
   onOpenChange,
-  sections,
-  templateName,
+  onSelectTemplate,
 }) => {
-  const { isPreviewMode } = usePromptStore();
-  const [customName, setCustomName] = useState(templateName);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const templates = getSoftwareTemplates();
 
-  const promptText = generatePromptText(sections);
-  
-  // Calculate estimated tokens (rough estimation: 1 token ≈ 4 characters)
-  const estimatedTokens = Math.ceil(promptText.length / 4);
-  
-  // Group sections by level for hierarchical display
-  const groupedSections = sections.reduce((acc, section) => {
-    const level = section.level ?? 1;
-    if (!acc[level]) {
-      acc[level] = [];
+  const handleApplyTemplate = () => {
+    if (selectedTemplate) {
+      const template = templates.find(t => t.id === selectedTemplate);
+      if (template) {
+        onSelectTemplate(template.sections);
+        onOpenChange(false);
+        setSelectedTemplate(null);
+      }
     }
-    acc[level].push(section);
-    return acc;
-  }, {} as Record<number, any[]>);
+  };
+
+  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Master Prompt Template</DialogTitle>
+          <DialogTitle>Software Development Templates</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input id="name" value={customName} className="col-span-3" onChange={(e) => setCustomName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="prompt-text" className="text-right">
-              Master Prompt
-            </Label>
-            <Textarea id="prompt-text" value={promptText} className="col-span-3 font-mono text-sm" readOnly />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tokens" className="text-right">
-              Estimated Tokens
-            </Label>
-            <Input id="tokens" value={estimatedTokens.toString()} className="col-span-3" readOnly />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[600px]">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Available Templates</h3>
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-3">
+                {templates.map(template => (
+                  <Card 
+                    key={template.id} 
+                    className={`cursor-pointer transition-colors ${
+                      selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setSelectedTemplate(template.id)}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <CardDescription className="text-sm">
+                        {template.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1">
+                        {template.tags?.map((tag: string) => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {template.sections.length} sections
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
           
-          <div className="space-y-2">
-            <Label>Sections Preview</Label>
-            <div className="max-h-48 overflow-y-auto">
-              {Object.entries(groupedSections).sort((a, b) => Number(a[0]) - Number(b[0])).map(([level, sections]) => (
-                <div key={level} className="space-y-1">
-                  <p className="text-sm font-medium">Level {level}</p>
-                  <div className="pl-2">
-                    {sections.map(section => (
-                      <div key={section.id} className="text-xs text-muted-foreground">
-                        {section.name}
-                      </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Template Preview</h3>
+            {selectedTemplateData ? (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{selectedTemplateData.name}</CardTitle>
+                    <CardDescription>{selectedTemplateData.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+                
+                <ScrollArea className="h-[400px] pr-4">
+                  <div className="space-y-3">
+                    {selectedTemplateData.sections.map((section: PromptSection, index: number) => (
+                      <Card key={index}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-xs bg-muted px-2 py-1 rounded">
+                              Level {section.level ?? 1}
+                            </span>
+                            {section.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xs text-muted-foreground line-clamp-3">
+                            {section.content || 'No content preview available'}
+                          </p>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
+                </ScrollArea>
+                
+                <Button 
+                  onClick={handleApplyTemplate} 
+                  className="w-full"
+                  disabled={!selectedTemplate}
+                >
+                  Apply Template ({selectedTemplateData.sections.length} sections)
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                Select a template to see preview
+              </div>
+            )}
           </div>
-        </div>
-        
-        <div className="flex justify-between">
-          <CopyButton text={promptText} />
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
         </div>
       </DialogContent>
     </Dialog>

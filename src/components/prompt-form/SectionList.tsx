@@ -52,24 +52,15 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
 
   const moveSection = useCallback((
     dragIndex: number, 
-    hoverIndex: number, 
-    dragParentId?: string, 
-    hoverParentId?: string
+    hoverIndex: number
   ) => {
-    // Get the relevant sections for the context
-    const contextSections = dragParentId 
-      ? sortedSections.filter(s => s.parentId === dragParentId)
-      : dragParentId === hoverParentId 
-        ? standardSections 
-        : sortedSections;
-        
     if (dragIndex < 0 || hoverIndex < 0 || 
-        dragIndex >= contextSections.length || 
-        hoverIndex >= contextSections.length) {
+        dragIndex >= sortedSections.length || 
+        hoverIndex >= sortedSections.length) {
       return;
     }
 
-    const newSections = [...contextSections];
+    const newSections = [...sortedSections];
     const draggedSection = newSections[dragIndex];
     
     // Remove dragged section and insert at new position
@@ -79,7 +70,7 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
     // Update orders and reorder
     const updatedIds = newSections.map(s => s.id);
     reorderSections(updatedIds);
-  }, [sortedSections, standardSections, reorderSections]);
+  }, [sortedSections, reorderSections]);
 
   // Render standard sections first
   const renderStandardSections = () => {
@@ -94,8 +85,14 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
               key={section.id}
               section={section}
               index={index}
-              onMove={moveSection}
-            />
+            >
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium">{section.name}</h4>
+                {section.content && (
+                  <p className="text-sm text-muted-foreground mt-2">{section.content}</p>
+                )}
+              </div>
+            </DraggableSection>
           ))}
         </div>
       </div>
@@ -124,8 +121,11 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
               <DraggableSection
                 section={area}
                 index={areaIndex}
-                onMove={moveSection}
-              />
+              >
+                <div className="flex-1">
+                  <h4 className="font-medium">{area.name}</h4>
+                </div>
+              </DraggableSection>
               <span className="text-sm text-muted-foreground ml-4">
                 ({childSections.length} {childSections.length === 1 ? 'Sektion' : 'Sektionen'})
               </span>
@@ -146,9 +146,15 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
                     <DraggableSection
                       section={section}
                       index={index}
-                      onMove={moveSection}
                       parentId={area.id}
-                    />
+                    >
+                      <div className="border rounded-lg p-4">
+                        <h5 className="font-medium">{section.name}</h5>
+                        {section.content && (
+                          <p className="text-sm text-muted-foreground mt-2">{section.content}</p>
+                        )}
+                      </div>
+                    </DraggableSection>
                   </div>
                 ))}
                 

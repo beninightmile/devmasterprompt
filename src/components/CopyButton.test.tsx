@@ -9,19 +9,9 @@ vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
-// Mock clipboard API
-const mockWriteText = vi.fn();
-Object.defineProperty(navigator, 'clipboard', {
-  value: {
-    writeText: mockWriteText,
-  },
-  writable: true,
-});
-
 describe('CopyButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockWriteText.mockResolvedValue(undefined);
   });
 
   it('should render with initial "Copy" text and Copy icon', () => {
@@ -38,8 +28,8 @@ describe('CopyButton', () => {
     const button = screen.getByRole('button');
     fireEvent.click(button);
     
-    expect(mockWriteText).toHaveBeenCalledWith(testText);
-    expect(mockWriteText).toHaveBeenCalledTimes(1);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(testText);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
   });
 
   it('should show success toast and change to "Copied" state after successful copy', async () => {
@@ -84,7 +74,7 @@ describe('CopyButton', () => {
 
   it('should show error toast when clipboard API fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockWriteText.mockRejectedValue(new Error('Copy failed'));
+    vi.mocked(navigator.clipboard.writeText).mockRejectedValue(new Error('Copy failed'));
     
     render(<CopyButton text="Test content" />);
     

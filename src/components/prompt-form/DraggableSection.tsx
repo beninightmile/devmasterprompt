@@ -8,18 +8,20 @@ interface DraggableSectionProps {
   section: PromptSection;
   index: number;
   children: React.ReactNode;
+  parentId?: string;
 }
 
 const DraggableSection: React.FC<DraggableSectionProps> = ({
   section,
   index,
   children,
+  parentId,
 }) => {
   const { reorderSections } = usePromptStore();
 
   const [{ isDragging }, drag] = useDrag({
     type: 'SECTION',
-    item: { id: section.id, index },
+    item: { id: section.id, index, parentId },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -27,8 +29,8 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
 
   const [, drop] = useDrop({
     accept: 'SECTION',
-    hover: (draggedItem: { id: string; index: number }) => {
-      if (draggedItem.index !== index) {
+    hover: (draggedItem: { id: string; index: number; parentId?: string }) => {
+      if (draggedItem.index !== index || draggedItem.parentId !== parentId) {
         reorderSections(draggedItem.index, index);
         draggedItem.index = index;
       }

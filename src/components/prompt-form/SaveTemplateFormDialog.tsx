@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,22 +8,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
-import { saveTemplate } from '@/services/template-service';
+import { autoSaveTemplate } from '@/services/template-service';
 import { useToast } from '@/hooks/use-toast';
 
 interface SaveTemplateFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialName?: string;
 }
 
 const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
   open,
   onOpenChange,
+  initialName = '',
 }) => {
   const { sections, templateName, setTemplateName } = usePromptStore();
   const { toast } = useToast();
   
-  const [name, setName] = useState(templateName);
+  const [name, setName] = useState(initialName || templateName);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -38,19 +41,21 @@ const SaveTemplateFormDialog: React.FC<SaveTemplateFormDialogProps> = ({
     }
 
     try {
-      saveTemplate(name.trim(), description.trim(), sections, tags);
-      setTemplateName(name.trim());
-      
-      toast({
-        title: "Template saved",
-        description: `"${name}" has been saved successfully.`,
-      });
-      
-      // Reset form
-      setDescription('');
-      setTags([]);
-      setTagInput('');
-      onOpenChange(false);
+      const savedId = autoSaveTemplate();
+      if (savedId) {
+        setTemplateName(name.trim());
+        
+        toast({
+          title: "Template saved",
+          description: `"${name}" has been saved successfully.`,
+        });
+        
+        // Reset form
+        setDescription('');
+        setTags([]);
+        setTagInput('');
+        onOpenChange(false);
+      }
     } catch (error) {
       toast({
         title: "Failed to save template",

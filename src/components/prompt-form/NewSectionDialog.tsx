@@ -17,13 +17,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { defaultPromptSections } from '@/core/registry';
+import { PromptSection } from '@/types/prompt';
 
 interface NewSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCustomSection: (name: string) => void;
+  onAddCustomSection: (name: string, areaId?: string) => void;
   onAddExistingSection: (template: any) => void;
   existingSections: string[];
+  areas?: PromptSection[];
 }
 
 const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
@@ -32,14 +34,17 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
   onAddCustomSection,
   onAddExistingSection,
   existingSections,
+  areas = [],
 }) => {
   const [newSectionName, setNewSectionName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedAreaId, setSelectedAreaId] = useState<string>('');
   
   const handleAddSection = () => {
     if (newSectionName.trim()) {
-      onAddCustomSection(newSectionName.trim());
+      onAddCustomSection(newSectionName.trim(), selectedAreaId || undefined);
       setNewSectionName('');
+      setSelectedAreaId('');
     }
   };
   
@@ -63,6 +68,26 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
               value={newSectionName} 
               onChange={e => setNewSectionName(e.target.value)} 
             />
+            
+            {areas.length > 0 && (
+              <div className="space-y-2">
+                <Label>Add to Area (optional)</Label>
+                <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an area or leave blank for standard section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Standard Section</SelectItem>
+                    {areas.map(area => (
+                      <SelectItem key={area.id} value={area.id}>
+                        {area.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             <Button 
               onClick={handleAddSection} 
               disabled={!newSectionName.trim()} 

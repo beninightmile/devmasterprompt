@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
-import { saveTemplate } from '@/services/template-service';
+import { autoSaveTemplate } from '@/services/template-service';
 import { useToast } from '@/hooks/use-toast';
 
 interface SaveTemplateDialogProps {
@@ -49,15 +50,17 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
     }
 
     try {
-      saveTemplate(name.trim(), description.trim(), sections, tags);
-      setTemplateName(name.trim());
-      
-      toast({
-        title: "Template saved",
-        description: `"${name}" has been saved successfully.`,
-      });
-      
-      onOpenChange(false);
+      const savedId = autoSaveTemplate();
+      if (savedId) {
+        setTemplateName(name.trim());
+        
+        toast({
+          title: "Template saved",
+          description: `"${name}" has been saved successfully.`,
+        });
+        
+        onOpenChange(false);
+      }
     } catch (error) {
       toast({
         title: "Failed to save template",
