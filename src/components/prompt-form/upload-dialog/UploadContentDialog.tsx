@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { parseTextIntoSections, matchWithDefaultSections } from '@/services/prompt-parser';
 import { PromptSection } from '@/types/prompt';

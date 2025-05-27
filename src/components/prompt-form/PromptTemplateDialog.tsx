@@ -1,167 +1,94 @@
-
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  SoftwareTemplate, 
-  getAllSoftwareTemplates,
-  getSoftwareTemplates,
-  getPromptEngineeringTemplates,
-  convertTemplateToSections
-} from '@/services/software-templates';
-import { Badge } from '@/components/ui/badge';
-import { ChevronRight, Code, MessageSquare } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { PromptSection } from '@/types/prompt';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { usePromptStore } from '@/store/promptStore';
+import { generatePromptText } from '@/services/prompt-service';
+import CopyButton from '../CopyButton';
 
 interface PromptTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectTemplate: (sections: PromptSection[]) => void;
+  sections: any[];
+  templateName: string;
 }
-
-const ComplexityBadge = ({ complexity }: { complexity: SoftwareTemplate['complexity'] }) => {
-  const colors = {
-    low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    high: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-    enterprise: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-  };
-
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[complexity]}`}>
-      {complexity.charAt(0).toUpperCase() + complexity.slice(1)}
-    </span>
-  );
-};
-
-const TemplateCard = ({ template, onSelect }: { template: SoftwareTemplate; onSelect: () => void }) => {
-  const { areaCount, standardCount, sectionCount } = getTemplateStats(template);
-  
-  return (
-    <div 
-      className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
-      onClick={onSelect}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            {template.category === 'software' ? (
-              <Code className="h-4 w-4 text-blue-500" />
-            ) : (
-              <MessageSquare className="h-4 w-4 text-purple-500" />
-            )}
-            <h3 className="text-lg font-semibold">{template.name}</h3>
-          </div>
-          <p className="text-muted-foreground text-sm mt-1">{template.description}</p>
-          
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            <ComplexityBadge complexity={template.complexity} />
-            <Badge variant="outline">Est. {template.estimatedTime}</Badge>
-            {template.category === 'software' ? (
-              <>
-                <Badge variant="secondary">{standardCount} Standard-Sektionen</Badge>
-                <Badge variant="secondary">{areaCount} Areas</Badge>
-                <Badge variant="secondary">{sectionCount} Sektionen</Badge>
-              </>
-            ) : (
-              <>
-                <Badge variant="secondary">{areaCount} Framework Areas</Badge>
-                <Badge variant="secondary">{sectionCount} Components</Badge>
-              </>
-            )}
-          </div>
-        </div>
-        
-        <Button variant="ghost" size="icon">
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const getTemplateStats = (template: SoftwareTemplate) => {
-  const areaCount = template.sections.filter(s => s.isArea).length;
-  const standardCount = template.sections.filter(s => !s.isArea && s.level === 1).length;
-  const sectionCount = template.sections.filter(s => !s.isArea && s.level > 1).length;
-  
-  return { areaCount, standardCount, sectionCount };
-};
 
 const PromptTemplateDialog: React.FC<PromptTemplateDialogProps> = ({
   open,
   onOpenChange,
-  onSelectTemplate,
+  sections,
+  templateName,
 }) => {
-  const [activeTab, setActiveTab] = useState('software');
-  const allTemplates = getAllSoftwareTemplates();
-  const softwareTemplates = getSoftwareTemplates(allTemplates);
-  const promptTemplates = getPromptEngineeringTemplates(allTemplates);
+  const { isPreviewMode } = usePromptStore();
+  const [customName, setCustomName] = useState(templateName);
 
-  const handleSelectTemplate = (template: SoftwareTemplate) => {
-    const sections = convertTemplateToSections(template);
-    onSelectTemplate(sections);
-    onOpenChange(false);
-  };
+  const promptText = generatePromptText(sections);
+  
+  // Calculate estimated tokens (rough estimation: 1 token ≈ 4 characters)
+  const estimatedTokens = Math.ceil(promptText.length / 4);
+  
+  // Group sections by level for hierarchical display
+  const groupedSections = sections.reduce((acc, section) => {
+    const level = section.level ?? 1;
+    if (!acc[level]) {
+      acc[level] = [];
+    }
+    acc[level].push(section);
+    return acc;
+  }, {} as Record<number, any[]>);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Prompt Template auswählen</DialogTitle>
-          <DialogDescription>
-            Wählen Sie eine Vorlage für Software-Entwicklung oder Prompt Engineering, um mit den passenden Abschnitten zu beginnen.
-          </DialogDescription>
+          <DialogTitle>Master Prompt Template</DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="software" className="flex items-center gap-2">
-              <Code className="h-4 w-4" />
-              Software-Entwicklung ({softwareTemplates.length})
-            </TabsTrigger>
-            <TabsTrigger value="prompt" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Prompt Engineering ({promptTemplates.length})
-            </TabsTrigger>
-          </TabsList>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
+            <Input id="name" value={customName} className="col-span-3" onChange={(e) => setCustomName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="prompt-text" className="text-right">
+              Master Prompt
+            </Label>
+            <Textarea id="prompt-text" value={promptText} className="col-span-3 font-mono text-sm" readOnly />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="tokens" className="text-right">
+              Estimated Tokens
+            </Label>
+            <Input id="tokens" value={estimatedTokens.toString()} className="col-span-3" readOnly />
+          </div>
           
-          <TabsContent value="software">
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 p-1">
-                {softwareTemplates.map((template) => (
-                  <TemplateCard 
-                    key={template.id}
-                    template={template}
-                    onSelect={() => handleSelectTemplate(template)}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-          
-          <TabsContent value="prompt">
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 p-1">
-                {promptTemplates.map((template) => (
-                  <TemplateCard 
-                    key={template.id}
-                    template={template}
-                    onSelect={() => handleSelectTemplate(template)}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+          <div className="space-y-2">
+            <Label>Sections Preview</Label>
+            <div className="max-h-48 overflow-y-auto">
+              {Object.entries(groupedSections).sort((a, b) => Number(a[0]) - Number(b[0])).map(([level, sections]) => (
+                <div key={level} className="space-y-1">
+                  <p className="text-sm font-medium">Level {level}</p>
+                  <div className="pl-2">
+                    {sections.map(section => (
+                      <div key={section.id} className="text-xs text-muted-foreground">
+                        {section.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex justify-between">
+          <CopyButton text={promptText} />
+          <Button onClick={() => onOpenChange(false)}>Close</Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

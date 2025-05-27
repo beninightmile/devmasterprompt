@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import { Clock } from 'lucide-react';
 interface AutoSaveSettingsProps {
   enabled: boolean;
   interval: number;
-  lastSaveTime: Date | null;
   onToggle: (enabled: boolean) => void;
   onIntervalChange: (minutes: number) => void;
 }
@@ -19,7 +17,6 @@ interface AutoSaveSettingsProps {
 const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
   enabled,
   interval,
-  lastSaveTime,
   onToggle,
   onIntervalChange,
 }) => {

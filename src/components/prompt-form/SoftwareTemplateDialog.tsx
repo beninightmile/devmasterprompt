@@ -1,167 +1,132 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  SoftwareTemplate, 
-  getAllSoftwareTemplates,
-  getSoftwareTemplates,
-  getPromptEngineeringTemplates,
-  convertTemplateToSections
-} from '@/services/software-templates';
 import { Badge } from '@/components/ui/badge';
-import { ChevronRight, Code, MessageSquare } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getSoftwareTemplates } from '@/services/software-templates';
 import { PromptSection } from '@/types/prompt';
 
 interface SoftwareTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectTemplate: (sections: PromptSection[]) => void;
+  onApplyTemplate: (sections: PromptSection[]) => void;
 }
-
-const ComplexityBadge = ({ complexity }: { complexity: SoftwareTemplate['complexity'] }) => {
-  const colors = {
-    low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    high: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-    enterprise: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-  };
-
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[complexity]}`}>
-      {complexity.charAt(0).toUpperCase() + complexity.slice(1)}
-    </span>
-  );
-};
-
-const TemplateCard = ({ template, onSelect }: { template: SoftwareTemplate; onSelect: () => void }) => {
-  const { areaCount, standardCount, sectionCount } = getTemplateStats(template);
-  
-  return (
-    <div 
-      className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
-      onClick={onSelect}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            {template.category === 'software' ? (
-              <Code className="h-4 w-4 text-blue-500" />
-            ) : (
-              <MessageSquare className="h-4 w-4 text-purple-500" />
-            )}
-            <h3 className="text-lg font-semibold">{template.name}</h3>
-          </div>
-          <p className="text-muted-foreground text-sm mt-1">{template.description}</p>
-          
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            <ComplexityBadge complexity={template.complexity} />
-            <Badge variant="outline">Est. {template.estimatedTime}</Badge>
-            {template.category === 'software' ? (
-              <>
-                <Badge variant="secondary">{standardCount} Standard-Sektionen</Badge>
-                <Badge variant="secondary">{areaCount} Areas</Badge>
-                <Badge variant="secondary">{sectionCount} Sektionen</Badge>
-              </>
-            ) : (
-              <>
-                <Badge variant="secondary">{areaCount} Framework Areas</Badge>
-                <Badge variant="secondary">{sectionCount} Components</Badge>
-              </>
-            )}
-          </div>
-        </div>
-        
-        <Button variant="ghost" size="icon">
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const getTemplateStats = (template: SoftwareTemplate) => {
-  const areaCount = template.sections.filter(s => s.isArea).length;
-  const standardCount = template.sections.filter(s => !s.isArea && s.level === 1).length;
-  const sectionCount = template.sections.filter(s => !s.isArea && s.level > 1).length;
-  
-  return { areaCount, standardCount, sectionCount };
-};
 
 const SoftwareTemplateDialog: React.FC<SoftwareTemplateDialogProps> = ({
   open,
   onOpenChange,
-  onSelectTemplate,
+  onApplyTemplate,
 }) => {
-  const [activeTab, setActiveTab] = useState('software');
-  const allTemplates = getAllSoftwareTemplates();
-  const softwareTemplates = getSoftwareTemplates(allTemplates);
-  const promptTemplates = getPromptEngineeringTemplates(allTemplates);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const templates = getSoftwareTemplates();
 
-  const handleSelectTemplate = (template: SoftwareTemplate) => {
-    const sections = convertTemplateToSections(template);
-    onSelectTemplate(sections);
-    onOpenChange(false);
+  const handleApplyTemplate = () => {
+    if (selectedTemplate) {
+      const template = templates.find(t => t.id === selectedTemplate);
+      if (template) {
+        onApplyTemplate(template.sections);
+        onOpenChange(false);
+        setSelectedTemplate(null);
+      }
+    }
   };
+
+  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Vorlage auswählen</DialogTitle>
-          <DialogDescription>
-            Wählen Sie eine Vorlage für Software-Entwicklung oder Prompt Engineering, um mit den passenden Abschnitten zu beginnen.
-          </DialogDescription>
+          <DialogTitle>Software Development Templates</DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="software" className="flex items-center gap-2">
-              <Code className="h-4 w-4" />
-              Software-Entwicklung ({softwareTemplates.length})
-            </TabsTrigger>
-            <TabsTrigger value="prompt" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Prompt Engineering ({promptTemplates.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="software">
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 p-1">
-                {softwareTemplates.map((template) => (
-                  <TemplateCard 
-                    key={template.id}
-                    template={template}
-                    onSelect={() => handleSelectTemplate(template)}
-                  />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[600px]">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Available Templates</h3>
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-3">
+                {templates.map(template => (
+                  <Card 
+                    key={template.id} 
+                    className={`cursor-pointer transition-colors ${
+                      selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setSelectedTemplate(template.id)}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <CardDescription className="text-sm">
+                        {template.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1">
+                        {template.tags?.map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {template.sections.length} sections
+                      </p>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </ScrollArea>
-          </TabsContent>
+          </div>
           
-          <TabsContent value="prompt">
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 p-1">
-                {promptTemplates.map((template) => (
-                  <TemplateCard 
-                    key={template.id}
-                    template={template}
-                    onSelect={() => handleSelectTemplate(template)}
-                  />
-                ))}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Template Preview</h3>
+            {selectedTemplateData ? (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{selectedTemplateData.name}</CardTitle>
+                    <CardDescription>{selectedTemplateData.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+                
+                <ScrollArea className="h-[400px] pr-4">
+                  <div className="space-y-3">
+                    {selectedTemplateData.sections.map((s, index) => (
+                      <Card key={index}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-xs bg-muted px-2 py-1 rounded">
+                              Level {s.level ?? 1}
+                            </span>
+                            {s.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xs text-muted-foreground line-clamp-3">
+                            {s.content || 'No content preview available'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+                
+                <Button 
+                  onClick={handleApplyTemplate} 
+                  className="w-full"
+                  disabled={!selectedTemplate}
+                >
+                  Apply Template ({selectedTemplateData.sections.length} sections)
+                </Button>
               </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                Select a template to see preview
+              </div>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

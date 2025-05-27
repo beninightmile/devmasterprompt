@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
@@ -23,7 +22,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
     addSection,
     clearAll,
     templateName,
-    currentTemplateId,
     autoSaveEnabled,
     autoSaveInterval,
     lastSaveTime,

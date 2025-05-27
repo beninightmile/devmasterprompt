@@ -1,4 +1,3 @@
-
 import { DetectedSection } from './types';
 
 /**
@@ -164,3 +163,21 @@ export function sortSectionsByHierarchy(sections: DetectedSection[]): DetectedSe
   // a more sophisticated algorithm may be needed
   return sectionsCopy;
 }
+
+export const createDetectedSection = (
+  name: string,
+  content: string,
+  level = 1,
+  order = 0,
+  parentId?: string
+): DetectedSection => {
+  return {
+    id: crypto.randomUUID(),
+    name: name.trim(),
+    content: content.trim(),
+    level,
+    order,
+    parentId: parentId ?? undefined,
+    isArea: false,
+  };
+};

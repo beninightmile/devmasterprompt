@@ -1,70 +1,46 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Clock, Calendar, Trash2 } from 'lucide-react';
 import { PromptTemplate } from '@/types/prompt';
-import { getNonEmptySectionsCount } from '@/services/prompt-service';
-import ModelCompatibility from '@/components/ModelCompatibility';
+import { formatDistanceToNow } from 'date-fns';
+import { Clock, FileText, Download } from 'lucide-react';
 
 interface TemplateCardProps {
   template: PromptTemplate;
-  onDelete: (id: string) => void;
-  onLoad: (id: string) => void;
+  onLoad: (template: PromptTemplate) => void;
+  onDelete: (templateId: string) => void;
 }
 
-const TemplateCard: React.FC<TemplateCardProps> = ({ template, onDelete, onLoad }) => {
-  // Calculate counts for areas and different section types
-  const standardSections = template.sections.filter(s => !s.isArea && s.level === 1);
-  const areas = template.sections.filter(s => s.isArea);
-  const childSections = template.sections.filter(s => !s.isArea && s.level > 1);
-  
-  const filledSections = getNonEmptySectionsCount(template.sections);
-
+const TemplateCard: React.FC<TemplateCardProps> = ({ template, onLoad, onDelete }) => {
   return (
-    <Card>
+    <Card className="w-full hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle>{template.name}</CardTitle>
-        {template.description && (
-          <CardDescription>{template.description}</CardDescription>
-        )}
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <CardTitle className="text-lg">{template.name}</CardTitle>
+            {template.description && (
+              <CardDescription className="mt-1">{template.description}</CardDescription>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <FileText className="h-4 w-4" />
+            <span>{template.sections.length} sections</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            <span>{formatDistanceToNow(template.updatedAt, { addSuffix: true })}</span>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-sm text-muted-foreground mb-4">
-          <div className="flex items-center mb-1">
-            <Calendar size={14} className="mr-2" />
-            Erstellt: {format(new Date(template.createdAt), 'PP')}
-          </div>
-          <div className="flex items-center">
-            <Clock size={14} className="mr-2" />
-            Aktualisiert: {format(new Date(template.updatedAt), 'PP')}
-          </div>
-        </div>
-        <div className="text-sm space-y-1">
-          <div className="flex flex-col gap-1">
-            <p>
-              {standardSections.length} Standard-Sektionen
-            </p>
-            <p>
-              {areas.length} Areas
-            </p>
-            <p>
-              {childSections.length} Unter-Sektionen
-            </p>
-            <p className="font-medium mt-1">
-              {filledSections} von {template.sections.length} Sektionen mit Inhalt
-            </p>
-          </div>
-          {template.totalTokens && (
-            <p className="font-medium mt-2">
-              {template.totalTokens} Tokens
-            </p>
-          )}
-        </div>
+      
+      <CardContent className="space-y-4">
         {template.tags && template.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-1">
             {template.tags.map(tag => (
               <Badge key={tag} variant="secondary" className="text-xs">
                 {tag}
@@ -72,21 +48,41 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onDelete, onLoad 
             ))}
           </div>
         )}
-        {template.totalTokens && template.totalTokens > 0 && (
-          <div className="mt-4">
-            <ModelCompatibility tokenCount={template.totalTokens} />
+        
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Sections Preview:</p>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
+            {template.sections.slice(0, 5).map((s, index) => (
+              <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                  L{s.level ?? 1}
+                </span>
+                <span className="truncate">{s.name}</span>
+              </div>
+            ))}
+            {template.sections.length > 5 && (
+              <p className="text-xs text-muted-foreground">
+                +{template.sections.length - 5} more sections
+              </p>
+            )}
           </div>
-        )}
+        </div>
+        
+        <div className="flex gap-2 pt-2">
+          <Button onClick={() => onLoad(template)} className="flex-1" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Load Template
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => onDelete(template.id)} 
+            size="sm"
+            className="text-destructive hover:text-destructive"
+          >
+            Delete
+          </Button>
+        </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" size="sm" onClick={() => onDelete(template.id)}>
-          <Trash2 size={14} className="mr-2" />
-          Löschen
-        </Button>
-        <Button size="sm" onClick={() => onLoad(template.id)}>
-          Vorlage verwenden
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

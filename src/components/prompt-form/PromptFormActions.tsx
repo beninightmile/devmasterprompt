@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { autoSaveTemplate } from '@/services/template-service';
 interface PromptFormActionsProps {
   templateName: string;
   autoSaveEnabled: boolean;
-  lastSaveTime: Date | null;
   onTogglePreview: (value: boolean) => void;
   onOpenSaveDialog: () => void;
   onOpenNewSectionDialog: () => void;
@@ -19,7 +17,6 @@ interface PromptFormActionsProps {
 const PromptFormActions: React.FC<PromptFormActionsProps> = ({
   templateName,
   autoSaveEnabled,
-  lastSaveTime,
   onTogglePreview,
   onOpenSaveDialog,
   onOpenNewSectionDialog,

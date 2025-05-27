@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { autoSaveTemplate } from '@/services/template-service';

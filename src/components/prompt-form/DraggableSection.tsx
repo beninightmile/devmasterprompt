@@ -1,61 +1,54 @@
 
 import React from 'react';
-import { PromptSection as PromptSectionType } from '@/types/prompt';
-import PromptSection from '@/components/PromptSection';
+import { useDrag, useDrop } from 'react-dnd';
+import { PromptSection } from '@/types/prompt';
 import { usePromptStore } from '@/store/promptStore';
 
 interface DraggableSectionProps {
-  section: PromptSectionType;
+  section: PromptSection;
   index: number;
-  onMove: (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => void;
-  parentId?: string;
+  children: React.ReactNode;
 }
 
 const DraggableSection: React.FC<DraggableSectionProps> = ({
   section,
   index,
-  onMove,
-  parentId
+  children,
 }) => {
-  const { moveSectionToArea } = usePromptStore();
-  
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify({
-      id: section.id,
-      index,
-      parentId
-    }));
-  };
+  const { reorderSections } = usePromptStore();
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
+  const [{ isDragging }, drag] = useDrag({
+    type: 'SECTION',
+    item: { id: section.id, index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    
-    if (data.id !== section.id) {
-      onMove(data.index, index, data.parentId, parentId);
-    }
-  };
+  const [, drop] = useDrop({
+    accept: 'SECTION',
+    hover: (draggedItem: { id: string; index: number }) => {
+      if (draggedItem.index !== index) {
+        reorderSections(draggedItem.index, index);
+        draggedItem.index = index;
+      }
+    },
+  });
 
   return (
     <div
-      draggable
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      className="transition-all duration-200"
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={`${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
     >
-      <PromptSection
-        id={section.id}
-        name={section.name}
-        content={section.content}
-        isRequired={section.isRequired}
-        level={section.level}
-        isArea={section.isArea}
-      />
+      {React.cloneElement(children as React.ReactElement, {
+        id: section.id,
+        name: section.name,
+        content: section.content,
+        isRequired: section.isRequired,
+        level: section.level ?? 1,
+        isArea: section.isArea ?? false,
+      })}
     </div>
   );
 };

@@ -9,8 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { defaultPromptSections } from '@/core/registry';
-import { PromptSection } from '@/types/prompt';
 import {
   Select,
   SelectContent,
@@ -18,14 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { defaultPromptSections } from '@/core/registry';
 
 interface NewSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCustomSection: (name: string, areaId?: string) => void;
+  onAddCustomSection: (name: string) => void;
   onAddExistingSection: (template: any) => void;
   existingSections: string[];
-  areas: PromptSection[];
 }
 
 const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
@@ -34,16 +32,13 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
   onAddCustomSection,
   onAddExistingSection,
   existingSections,
-  areas,
 }) => {
   const [newSectionName, setNewSectionName] = useState('');
-  const [selectedAreaId, setSelectedAreaId] = useState<string | undefined>(
-    areas.length > 0 ? areas[0].id : undefined
-  );
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   
   const handleAddSection = () => {
     if (newSectionName.trim()) {
-      onAddCustomSection(newSectionName.trim(), selectedAreaId);
+      onAddCustomSection(newSectionName.trim());
       setNewSectionName('');
     }
   };
@@ -57,63 +52,55 @@ const NewSectionDialog: React.FC<NewSectionDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Neue Sektion hinzufügen</DialogTitle>
+          <DialogTitle>Add a New Section</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="area-select">Bereich auswählen</Label>
-            <Select 
-              value={selectedAreaId} 
-              onValueChange={setSelectedAreaId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Wählen Sie einen Bereich" />
-              </SelectTrigger>
-              <SelectContent>
-                {areas.map(area => (
-                  <SelectItem key={area.id} value={area.id}>
-                    {area.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="new-section-name">Name der neuen Sektion</Label>
+            <Label htmlFor="new-section-name">Custom Section Name</Label>
             <Input 
               id="new-section-name" 
-              placeholder="Geben Sie den Sektionsnamen ein" 
+              placeholder="Enter section name" 
               value={newSectionName} 
               onChange={e => setNewSectionName(e.target.value)} 
             />
             <Button 
               onClick={handleAddSection} 
-              disabled={!newSectionName.trim() || !selectedAreaId} 
+              disabled={!newSectionName.trim()} 
               className="w-full mt-2"
             >
-              Benutzerdefinierte Sektion erstellen
+              Create Custom Section
             </Button>
           </div>
           
           {unusedSections.length > 0 && (
             <div className="space-y-2 mt-4">
-              <Label>Oder wählen Sie aus vordefinierten Sektionen</Label>
-              <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
-                {unusedSections.map(template => (
-                  <Button 
-                    key={template.id} 
-                    variant="outline" 
-                    onClick={() => onAddExistingSection(template)} 
-                    className="justify-start text-left h-auto py-2"
-                  >
-                    <div>
-                      <div className="font-medium">{template.name}</div>
-                      <div className="text-xs text-muted-foreground">{template.description}</div>
-                    </div>
-                  </Button>
-                ))}
-              </div>
+              <Label>Or choose from template sections</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template section" />
+                </SelectTrigger>
+                <SelectContent>
+                  {unusedSections.map(template => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedTemplate && (
+                <Button 
+                  onClick={() => {
+                    const template = unusedSections.find(t => t.id === selectedTemplate);
+                    if (template) {
+                      onAddExistingSection(template);
+                      setSelectedTemplate('');
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Add Selected Section
+                </Button>
+              )}
             </div>
           )}
         </div>

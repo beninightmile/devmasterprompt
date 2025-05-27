@@ -1,4 +1,5 @@
-import { DetectedSection } from '../types';
+import { DetectedSection, ParseResult } from '../types';
+import { createDetectedSection } from '../section-utils';
 import { parseMarkdownHeadings } from './markdown-parser';
 import { parseNumberedSections } from './numbered-parser';
 import { parsePrefixedSections } from './prefixed-parser';
@@ -153,3 +154,11 @@ export function enhanceHierarchicalStructure(sections: DetectedSection[]): void 
     }
   }
 }
+
+const processSection = (name: string, content: string, level: number): DetectedSection => {
+  return createDetectedSection(
+    name || 'Untitled Section',
+    content || '',
+    level
+  );
+};
