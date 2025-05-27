@@ -44,10 +44,13 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
   lastSaveTime,
   onAutoSaveToggle,
   onAutoSaveIntervalChange,
-  onAutoSave,
   templateName,
 }) => {
   const { setTemplateName } = usePromptStore();
+
+  const handleTemplateNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setTemplateName(e.target.value);
+  };
 
   return (
     <div className="space-y-4">
@@ -58,7 +61,7 @@ const PromptFormHeader: React.FC<PromptFormHeaderProps> = ({
           id="template-name"
           placeholder="Geben Sie einen Namen für Ihren Master Prompt ein..."
           value={templateName}
-          onChange={(e) => setTemplateName(e.target.value)}
+          onChange={handleTemplateNameChange}
           className="font-medium"
         />
       </div>

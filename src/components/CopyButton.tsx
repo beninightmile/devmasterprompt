@@ -20,23 +20,23 @@ const CopyButton: React.FC<CopyButtonProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
   
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        setIsCopied(true);
-        toast({
-          title: "Copied to clipboard",
-          description: "Content has been copied to your clipboard.",
-        });
-        setTimeout(() => setIsCopied(false), 2000);
-      })
-      .catch(() => {
-        toast({
-          title: "Failed to copy",
-          description: "Please try again or copy manually.",
-          variant: "destructive",
-        });
+  const handleCopy = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      toast({
+        title: "Copied to clipboard",
+        description: "Content has been copied to your clipboard.",
       });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      toast({
+        title: "Failed to copy",
+        description: "Content could not be copied to clipboard. Please try again or copy manually.",
+        variant: "destructive",
+      });
+    }
   };
   
   return (

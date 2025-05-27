@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
-import { Clock, Settings } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface AutoSaveSettingsProps {
   enabled: boolean;
@@ -26,18 +26,20 @@ const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
   const [open, setOpen] = useState(false);
   const [tempInterval, setTempInterval] = useState(interval);
   
-  const handleIntervalChange = (value: number[]) => {
-    setTempInterval(value[0]);
+  const handleIntervalChange = (value: number[]): void => {
+    if (value.length > 0 && typeof value[0] === 'number') {
+      setTempInterval(value[0]);
+    }
   };
   
-  const handleManualIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleManualIntervalChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const val = parseInt(e.target.value, 10);
     if (!isNaN(val)) {
       setTempInterval(Math.max(1, Math.min(60, val)));
     }
   };
   
-  const handleSave = () => {
+  const handleSave = (): void => {
     onIntervalChange(tempInterval);
     setOpen(false);
   };
@@ -71,7 +73,7 @@ const AutoSaveSettings: React.FC<AutoSaveSettingsProps> = ({
               <Input 
                 id="auto-save-interval-input"
                 type="number"
-                value={tempInterval}
+                value={tempInterval.toString()}
                 onChange={handleManualIntervalChange}
                 min={1}
                 max={60}
