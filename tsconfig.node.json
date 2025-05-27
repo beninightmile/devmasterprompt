@@ -9,21 +9,16 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-
-    // Strengere Einstellungen aktiviert/geändert:
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true
   },
-  // Wichtig: Hier alle relevanten Konfigurationsdateien im Root-Verzeichnis auflisten,
-  // damit der TypeScript Language Server in deiner IDE auch für diese Dateien Typ-Checking macht.
   "include": [
     "vite.config.ts",
     "tailwind.config.ts",
     "postcss.config.js",
     "eslint.config.js"
-    // Füge hier ggf. vitest.config.ts hinzu, falls Lovable diese Datei anlegt
   ]
 }
