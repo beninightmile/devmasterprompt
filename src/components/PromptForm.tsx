@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { usePromptStore } from '@/store/promptStore';
 import { generatePromptText } from '@/services/prompt-service';
@@ -190,7 +191,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
 
       {/* Section list with drag and drop support */}
       <DragDropProvider>
-        <SectionManager sections={sections} />
+        <SectionManager />
       </DragDropProvider>
 
       {/* Dialogs */}

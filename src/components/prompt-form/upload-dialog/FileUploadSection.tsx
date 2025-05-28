@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,18 +8,60 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
 interface FileUploadSectionProps {
-  error: string | null;
-  isProcessing: boolean;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDirectTextUpload: () => void;
+  onTextParsed: (text: string) => void;
 }
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = ({
-  error,
-  isProcessing,
-  onFileChange,
-  onDirectTextUpload,
+  onTextParsed,
 }) => {
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file type
+    if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
+      setError('Please upload a plain text (.txt) file');
+      return;
+    }
+    
+    setError(null);
+    setIsProcessing(true);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        onTextParsed(text);
+        setIsProcessing(false);
+      } catch (err) {
+        setError('Failed to process the text file');
+        setIsProcessing(false);
+      }
+    };
+    
+    reader.onerror = () => {
+      setError('Failed to read the file');
+      setIsProcessing(false);
+    };
+    
+    reader.readAsText(file);
+  };
+
+  const handleDirectTextUpload = () => {
+    const textareaElement = document.getElementById('direct-text-input') as HTMLTextAreaElement;
+    if (textareaElement && textareaElement.value) {
+      const text = textareaElement.value;
+      setIsProcessing(true);
+      onTextParsed(text);
+      setIsProcessing(false);
+    } else {
+      setError('Please enter text to process');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -28,7 +70,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
           id="prompt-file"
           type="file"
           accept=".txt,text/plain"
-          onChange={onFileChange}
+          onChange={handleFileChange}
           disabled={isProcessing}
         />
       </div>
@@ -40,7 +82,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
           placeholder="Paste your prompt text here..."
           className="min-h-[200px]"
         />
-        <Button onClick={onDirectTextUpload} disabled={isProcessing}>
+        <Button onClick={handleDirectTextUpload} disabled={isProcessing}>
           Process Text
         </Button>
       </div>

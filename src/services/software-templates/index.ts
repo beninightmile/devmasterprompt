@@ -27,7 +27,7 @@ export {
  * Get a software template by its id
  */
 export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  const allTemplates = getAvailableSoftwareTemplates();
+  const allTemplates = getSoftwareTemplates();
   return allTemplates.find((template: SoftwareTemplate) => template.id === id);
 }
 
@@ -35,21 +35,21 @@ export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefine
  * Get all available software templates
  */
 export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return getAvailableSoftwareTemplates();
+  return getSoftwareTemplates();
 }
 
 /**
  * Get all software development templates
  */
 export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
-  const allTemplates = getAvailableSoftwareTemplates();
-  return getSoftwareTemplates(allTemplates);
+  const allTemplates = getSoftwareTemplates();
+  return getTemplatesByCategory(allTemplates, 'software');
 }
 
 /**
  * Get all prompt engineering templates
  */
 export function getAllPromptEngineeringTemplates(): SoftwareTemplate[] {
-  const allTemplates = getAvailableSoftwareTemplates();
-  return getPromptEngineeringTemplates(allTemplates);
+  const allTemplates = getSoftwareTemplates();
+  return getTemplatesByCategory(allTemplates, 'prompt_engineering');
 }

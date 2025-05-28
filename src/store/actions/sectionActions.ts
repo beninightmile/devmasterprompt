@@ -8,17 +8,32 @@ export interface PromptStoreState {
 }
 
 export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => ({
-  addSection: (section: Omit<PromptSection, 'order'>) => {
+  addSection: (section: Omit<PromptSection, 'order'>, areaId?: string) => {
     set((state: PromptStoreState) => {
       const newSection: PromptSection = {
         ...section,
         order: state.sections.length,
         level: section.level ?? 1,
-        parentId: section.parentId || undefined,
+        parentId: areaId || section.parentId || undefined,
         isArea: section.isArea ?? false,
       };
       return {
         sections: [...state.sections, newSection],
+      };
+    });
+  },
+
+  addArea: (area: Omit<PromptSection, 'order' | 'isArea'>) => {
+    set((state: PromptStoreState) => {
+      const newArea: PromptSection = {
+        ...area,
+        order: state.sections.length,
+        level: area.level ?? 1,
+        parentId: area.parentId || undefined,
+        isArea: true,
+      };
+      return {
+        sections: [...state.sections, newArea],
       };
     });
   },

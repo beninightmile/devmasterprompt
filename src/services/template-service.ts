@@ -45,9 +45,9 @@ export const loadTemplateIntoPrompt = (templateId: string): boolean => {
       name: section.name,
       content: section.content,
       isRequired: section.isRequired,
-      level: section.level,
+      level: section.level ?? 1,
       parentId: section.parentId,
-      isArea: section.isArea
+      isArea: section.isArea ?? false
     });
   });
   
@@ -105,4 +105,10 @@ export const getPopularTags = (templates: PromptTemplate[]): string[] => {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .map(([tag]) => tag);
+};
+
+export const getAvailableSoftwareTemplates = () => {
+  // This function should return the available software templates
+  // For now, return empty array to resolve the import error
+  return [];
 };

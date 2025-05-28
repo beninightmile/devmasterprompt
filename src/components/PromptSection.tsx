@@ -16,6 +16,8 @@ interface PromptSectionProps {
   isDragging?: boolean;
   level?: number;
   isArea?: boolean;
+  isActive?: boolean;
+  onClick?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
@@ -28,6 +30,8 @@ const PromptSection: React.FC<PromptSectionProps> = ({
   isDragging,
   level = 1,
   isArea = false,
+  isActive = false,
+  onClick,
   onDragStart,
   onDragEnd
 }) => {
@@ -87,7 +91,10 @@ const PromptSection: React.FC<PromptSectionProps> = ({
   }
 
   return (
-    <Card className={`prompt-section ${isDragging ? 'opacity-50' : ''} ${getLevelClass()}`}>
+    <Card 
+      className={`prompt-section ${isDragging ? 'opacity-50' : ''} ${getLevelClass()} ${isActive ? 'ring-2 ring-primary' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader className="prompt-section-header p-3">
         <div className="flex items-center space-x-2">
           {!isRequired && (
