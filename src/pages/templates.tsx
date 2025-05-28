@@ -22,6 +22,7 @@ const TemplatesPage: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   
   const popularTags = getPopularTags(templates);
   
@@ -44,6 +45,7 @@ const TemplatesPage: React.FC = () => {
         title: "Template saved",
         description: "Your prompt template has been saved successfully.",
       });
+      setSaveDialogOpen(false);
     } catch (error) {
       toast({
         title: "Failed to save template",
@@ -109,7 +111,11 @@ const TemplatesPage: React.FC = () => {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Template Library</h1>
-        <SaveTemplateDialog onSave={handleSaveTemplate} />
+        <SaveTemplateDialog 
+          open={saveDialogOpen}
+          onOpenChange={setSaveDialogOpen}
+          onSave={handleSaveTemplate} 
+        />
       </div>
 
       <TemplateFilters 

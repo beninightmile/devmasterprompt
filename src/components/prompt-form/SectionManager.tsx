@@ -1,16 +1,11 @@
 
 import React from 'react';
-import { PromptSection as PromptSectionType } from '@/types/prompt';
 import SectionList from './SectionList';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
 
-interface SectionManagerProps {
-  sections: PromptSectionType[];
-}
-
-const SectionManager: React.FC<SectionManagerProps> = ({ sections }) => {
+const SectionManager: React.FC = () => {
   const { addArea, addSection } = usePromptStore();
   
   const handleAddArea = () => {
@@ -40,7 +35,7 @@ const SectionManager: React.FC<SectionManagerProps> = ({ sections }) => {
   
   return (
     <div>
-      <SectionList sections={sections} />
+      <SectionList />
       
       <div className="flex gap-3 mt-6">
         <Button 

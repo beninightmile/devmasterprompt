@@ -1,651 +1,349 @@
-import { SoftwareTemplate } from './software-templates/types';
-import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser';
-import { PromptSection } from '@/types/prompt';
 
-// Define the types of software templates available
-export type SoftwareTemplateType = 
-  | 'web_app_simple' 
-  | 'web_app_complex'
-  | 'mobile_app' 
-  | 'desktop_app'
-  | 'api_service'
-  | 'fullstack_application'
-  | 'enterprise_system'
-  | 'microservice_architecture'
-  | 'zero_shot_template'
-  | 'roses_framework'
-  | 'chain_of_thought'
-  | 'prompt_framework';
+import type { SoftwareTemplate as SoftwareTemplateType } from './software-templates/types';
+import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser/constants';
 
-// Interface for the software template metadata
-export interface SoftwareTemplate {
-  id: string;
+// Interface for creating software template sections
+interface SoftwareTemplateSection {
   name: string;
-  description: string;
-  complexity: 'low' | 'medium' | 'high' | 'enterprise';
-  estimatedTime: string;  // "3-5 days", "2-4 weeks", etc.
-  type: SoftwareTemplateType;
-  category: 'software' | 'prompt_engineering';  // Added category property
-  sections: PromptSection[];
-  areaCount: number; // Number of areas in the template
-  sectionCount: number; // Number of non-area sections in the template
+  defaultContent: string;
+  required: boolean;
+  category?: string;
+  level?: number;
 }
 
-// Helper function to create an area with children
-const createTemplateArea = (areaProps: {
-  id: string;
-  name: string;
-  content?: string;
-  order: number;
-  children?: Array<{
-    name: string;
-    content: string;
-    isRequired?: boolean;
-  }>;
-}): PromptSection[] => {
-  const { id, name, content = '', order, children = [] } = areaProps;
-  
-  // Create the area
-  const area: PromptSection = {
+// Helper function to create template sections
+const createTemplateSection = (name: string, content: string, required = false, level = 1): SoftwareTemplateSection => ({
+  name,
+  defaultContent: content,
+  required,
+  level
+});
+
+// Simple Web App Template
+const simpleWebAppSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are an expert web developer specializing in building modern, responsive web applications.", true),
+  createTemplateSection("Project Overview", "Create a simple, user-friendly web application with clean design and intuitive navigation.", true),
+  createTemplateSection("Technical Requirements", "Use modern web technologies (HTML5, CSS3, JavaScript ES6+, responsive design principles).", true),
+  createTemplateSection("UI/UX Guidelines", "Focus on clean, minimalist design with good contrast and readability.", false),
+  createTemplateSection("Code Quality", "Write clean, well-commented code following best practices.", false),
+];
+
+// Complex Web App Template
+const complexWebAppSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a senior full-stack developer with expertise in modern web frameworks and scalable architecture.", true),
+  createTemplateSection("Project Architecture", "Design a scalable, maintainable web application with proper separation of concerns.", true),
+  createTemplateSection("Frontend Requirements", "Build with React/Vue/Angular, state management, component architecture.", true),
+  createTemplateSection("Backend Requirements", "RESTful API design, database integration, authentication, security.", true),
+  createTemplateSection("Performance Optimization", "Implement lazy loading, caching strategies, and performance monitoring.", false),
+  createTemplateSection("Testing Strategy", "Unit tests, integration tests, and end-to-end testing approach.", false),
+  createTemplateSection("Deployment & DevOps", "CI/CD pipeline, containerization, monitoring, and logging.", false),
+];
+
+// Mobile App Template
+const mobileAppSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a mobile app developer experienced in cross-platform development.", true),
+  createTemplateSection("App Concept", "Define the mobile app's core functionality and target platform(s).", true),
+  createTemplateSection("UI/UX for Mobile", "Design for touch interfaces, responsive layouts, and mobile-first approach.", true),
+  createTemplateSection("Platform Considerations", "iOS/Android specific guidelines, native features, and performance.", false),
+  createTemplateSection("Offline Functionality", "Data synchronization, local storage, and offline user experience.", false),
+];
+
+// Desktop App Template
+const desktopAppSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a desktop application developer with expertise in native desktop frameworks.", true),
+  createTemplateSection("Application Framework", "Choose appropriate framework (Electron, Qt, .NET, etc.) based on requirements.", true),
+  createTemplateSection("Desktop UI Design", "Design for keyboard/mouse interaction, window management, and desktop conventions.", true),
+  createTemplateSection("System Integration", "File system access, OS-specific features, and system notifications.", false),
+  createTemplateSection("Cross-Platform Compatibility", "Ensure compatibility across different operating systems.", false),
+];
+
+// API Service Template
+const apiServiceSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a backend developer specializing in API design and microservices architecture.", true),
+  createTemplateSection("API Design", "RESTful/GraphQL API design with proper endpoint structure and documentation.", true),
+  createTemplateSection("Data Models", "Database schema design, relationships, and data validation.", true),
+  createTemplateSection("Authentication & Security", "Implement secure authentication, authorization, and data protection.", true),
+  createTemplateSection("Error Handling", "Comprehensive error handling and meaningful error responses.", false),
+  createTemplateSection("API Documentation", "Clear API documentation with examples and usage guidelines.", false),
+];
+
+// Fullstack Application Template
+const fullstackAppSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a full-stack developer capable of handling both frontend and backend development.", true),
+  createTemplateSection("System Architecture", "Overall system design connecting frontend, backend, and database layers.", true),
+  createTemplateSection("Frontend Development", "User interface design and implementation with modern frameworks.", true),
+  createTemplateSection("Backend Development", "Server-side logic, API development, and database management.", true),
+  createTemplateSection("Database Design", "Data modeling, relationships, and optimization strategies.", true),
+  createTemplateSection("Integration & Testing", "End-to-end integration and comprehensive testing strategy.", false),
+];
+
+// Enterprise System Template
+const enterpriseSystemSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are an enterprise software architect with experience in large-scale system design.", true),
+  createTemplateSection("Enterprise Architecture", "Scalable, maintainable architecture for enterprise-level requirements.", true),
+  createTemplateSection("Security & Compliance", "Enterprise security standards, compliance requirements, and audit trails.", true),
+  createTemplateSection("Integration Strategy", "Integration with existing enterprise systems and third-party services.", true),
+  createTemplateSection("Scalability & Performance", "Design for high availability, load balancing, and performance optimization.", true),
+  createTemplateSection("Monitoring & Analytics", "Comprehensive monitoring, logging, and business intelligence.", false),
+  createTemplateSection("Disaster Recovery", "Backup strategies, disaster recovery planning, and business continuity.", false),
+];
+
+// Microservice Architecture Template
+const microserviceArchSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are a microservices architect specializing in distributed systems design.", true),
+  createTemplateSection("Service Decomposition", "Break down monolithic functionality into independent microservices.", true),
+  createTemplateSection("Inter-Service Communication", "Design communication patterns, API contracts, and message queuing.", true),
+  createTemplateSection("Data Management", "Database per service, data consistency, and distributed transactions.", true),
+  createTemplateSection("Service Discovery", "Service registration, discovery mechanisms, and load balancing.", false),
+  createTemplateSection("Monitoring & Observability", "Distributed tracing, centralized logging, and health monitoring.", false),
+  createTemplateSection("Deployment Strategy", "Containerization, orchestration, and independent service deployment.", false),
+];
+
+// Zero-Shot Template (Prompt Engineering)
+const zeroShotSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are an AI assistant capable of understanding and completing tasks without prior examples.", true),
+  createTemplateSection("Task Description", "Clearly define the specific task or problem to be solved.", true),
+  createTemplateSection("Context & Background", "Provide relevant context and background information for the task.", true),
+  createTemplateSection("Output Format", "Specify the desired format and structure of the response.", false),
+  createTemplateSection("Constraints", "Define any limitations, requirements, or boundaries for the task.", false),
+];
+
+// ROSES Framework Template (Prompt Engineering)
+const rosesFrameworkSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "Define your specific role and expertise for this task.", true),
+  createTemplateSection("Objective", "Clearly state the main goal or objective to be achieved.", true),
+  createTemplateSection("Scenario", "Describe the context, situation, or scenario in detail.", true),
+  createTemplateSection("Expected Solution", "Outline the expected type of solution or approach.", true),
+  createTemplateSection("Sense Check", "Define criteria for evaluating and validating the solution.", false),
+];
+
+// Chain of Thought Template (Prompt Engineering)
+const chainOfThoughtSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Role", "You are an AI assistant that thinks step-by-step through problems.", true),
+  createTemplateSection("Problem Statement", "Clearly define the problem or question to be solved.", true),
+  createTemplateSection("Thinking Process", "Break down the problem into logical steps and show your reasoning.", true),
+  createTemplateSection("Step-by-Step Analysis", "Work through each step methodically, explaining your logic.", true),
+  createTemplateSection("Final Answer", "Provide the final solution based on your step-by-step analysis.", true),
+];
+
+// General Prompt Framework Template
+const promptFrameworkSections: SoftwareTemplateSection[] = [
+  createTemplateSection("Context", "Provide background context and relevant information.", true),
+  createTemplateSection("Instructions", "Clear, specific instructions for the task.", true),
+  createTemplateSection("Examples", "Provide examples of desired input/output format.", false),
+  createTemplateSection("Constraints", "Define limitations, requirements, or boundaries.", false),
+  createTemplateSection("Output Format", "Specify the desired response format and structure.", false),
+];
+
+// Convert template sections to PromptSection format
+const convertSectionsToPromptSections = (sections: SoftwareTemplateSection[]) => {
+  return sections.map((section, index) => ({
+    id: crypto.randomUUID(),
+    name: section.name,
+    content: section.defaultContent,
+    order: index,
+    isRequired: section.required,
+    level: section.level ?? 1,
+  }));
+};
+
+// Create the software templates
+const createSoftwareTemplate = (
+  id: string,
+  name: string,
+  description: string,
+  type: string,
+  complexity: 'low' | 'medium' | 'high' | 'enterprise',
+  estimatedTime: string,
+  sections: SoftwareTemplateSection[],
+  category: 'software' | 'prompt_engineering' = 'software',
+  tags: string[] = []
+): SoftwareTemplateType => {
+  const promptSections = convertSectionsToPromptSections(sections);
+  return {
     id,
     name,
-    content,
-    order,
-    isRequired: false,
-    level: 1,
-    isArea: true
-  };
-  
-  // Create child sections
-  const childSections = children.map((child, index) => ({
-    id: `${id}-child-${index}`,
-    name: child.name,
-    content: child.content,
-    order: order + index + 1,
-    isRequired: child.isRequired || false,
-    level: 2,
-    parentId: id
-  }));
-  
-  return [area, ...childSections];
-};
-
-// Helper function to create standard sections
-const createStandardSections = (): PromptSection[] => {
-  return STANDARD_SECTIONS.map((section, index) => ({
-    id: `standard-${index}`,
-    name: section.name,
-    content: '',
-    order: index + 1,
-    isRequired: true,
-    level: 1
-  }));
-};
-
-// Collection of predefined software templates using the hierarchical structure
-export const softwareTemplates: SoftwareTemplate[] = [
-  {
-    id: 'web_simple',
-    name: 'Einfache Web-Anwendung',
-    description: 'Grundlegende Webanwendung mit einigen Seiten und einfacher Funktionalität.',
-    complexity: 'low',
-    estimatedTime: '1-3 Tage',
-    type: 'web_app_simple',
-    category: 'software',
-    sections: [
-      // Standard sections first
-      ...createStandardSections(),
-      
-      // Tech Stack Area
-      ...createTemplateArea({
-        id: 'core_1',
-        name: 'Technologie-Stack & Tooling',
-        order: 10,
-        children: [
-          {
-            name: 'Framework & Sprache',
-            content: 'React mit TypeScript',
-            isRequired: true
-          },
-          {
-            name: 'Styling',
-            content: 'Tailwind CSS',
-            isRequired: true
-          },
-          {
-            name: 'UI-Komponenten',
-            content: 'Shadcn UI',
-            isRequired: false
-          }
-        ]
-      }),
-      
-      // Architecture Area
-      ...createTemplateArea({
-        id: 'core_2',
-        name: 'Projektstruktur & Architekturprinzipien',
-        order: 20,
-        children: [
-          {
-            name: 'Dateisystem-Organisation',
-            content: 'Feature-basierte Ordnerstruktur',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // UI/UX Area
-      ...createTemplateArea({
-        id: 'core_3',
-        name: 'UI-System & Design-Konventionen',
-        order: 30,
-        children: [
-          {
-            name: 'Design-System',
-            content: 'Einheitliches Farb- und Typografieschema',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // Core Features Area
-      ...createTemplateArea({
-        id: 'core_6',
-        name: 'Kernmodule & Funktionalitäten',
-        order: 60,
-        children: [
-          {
-            name: 'Hauptfunktionen',
-            content: 'Liste der Hauptfunktionen der Anwendung',
-            isRequired: true
-          }
-        ]
-      })
-    ],
-    // Calculate area and section counts
-    get areaCount() { 
-      return this.sections.filter(s => s.isArea).length;
-    },
-    get sectionCount() {
-      return this.sections.filter(s => !s.isArea && s.level > 1).length;
-    }
-  },
-  {
-    id: 'web_complex',
-    name: 'Komplexe Web-Anwendung',
-    description: 'Fortgeschrittene Webanwendung mit mehreren Funktionen, Benutzerauthentifizierung und Datenverwaltung.',
-    complexity: 'medium',
-    estimatedTime: '1-3 Wochen',
-    type: 'web_app_complex',
-    category: 'software',
-    sections: [
-      // Standard sections first
-      ...createStandardSections(),
-      
-      // Tech Stack Area
-      ...createTemplateArea({
-        id: 'core_1',
-        name: 'Technologie-Stack & Tooling',
-        order: 10,
-        children: [
-          {
-            name: 'Framework & Sprache',
-            content: 'React mit TypeScript',
-            isRequired: true
-          },
-          {
-            name: 'Styling',
-            content: 'Tailwind CSS mit Theme-Anpassungen',
-            isRequired: true
-          },
-          {
-            name: 'State Management',
-            content: 'Zustand für globalen Zustand, React Query für Server-State',
-            isRequired: true
-          },
-          {
-            name: 'Backend-Integration',
-            content: 'RESTful API mit Axios',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // Architecture Area
-      ...createTemplateArea({
-        id: 'core_2',
-        name: 'Projektstruktur & Architekturprinzipien',
-        order: 20,
-        children: [
-          {
-            name: 'Architekturmuster',
-            content: 'Feature-basierte Architektur mit klarer Trennung von Zustand und UI',
-            isRequired: true
-          },
-          {
-            name: 'Code-Organisation',
-            content: 'Modularisierung nach Funktionen',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // Security Area
-      ...createTemplateArea({
-        id: 'core_4',
-        name: 'Security, Authentifizierung & Rollenmanagement',
-        order: 40,
-        children: [
-          {
-            name: 'Authentifizierungsstrategie',
-            content: 'JWT-basierte Authentifizierung',
-            isRequired: true
-          },
-          {
-            name: 'Benutzerrollen',
-            content: 'Beschreibung der Benutzerrollen und Berechtigungen',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // Routing Area
-      ...createTemplateArea({
-        id: 'core_5',
-        name: 'Standard-Routing & Seitenstruktur',
-        order: 50,
-        children: [
-          {
-            name: 'Routendefinitionen',
-            content: 'Definition der Hauptrouten und Seitenübergänge',
-            isRequired: true
-          },
-          {
-            name: 'Geschützte Routen',
-            content: 'Implementation von geschützten Routen basierend auf Benutzerrollen',
-            isRequired: true
-          }
-        ]
-      }),
-      
-      // Features Area
-      ...createTemplateArea({
-        id: 'core_6',
-        name: 'Kernmodule & Funktionalitäten',
-        order: 60,
-        children: [
-          {
-            name: 'Benutzerverwaltung',
-            content: 'Funktionen für Benutzerregistrierung, Login, Profilverwaltung',
-            isRequired: true
-          },
-          {
-            name: 'Datenintegrationen',
-            content: 'Beschreibung der Datenquellen und Integrationen',
-            isRequired: true
-          }
-        ]
-      })
-    ],
-    get areaCount() { 
-      return this.sections.filter(s => s.isArea).length;
-    },
-    get sectionCount() {
-      return this.sections.filter(s => !s.isArea && s.level > 1).length;
-    }
-  },
-  {
-    id: 'fullstack',
-    name: 'Full-Stack-Anwendung',
-    description: 'Komplette Anwendung mit Frontend, Backend, Datenbank und erweiterten Funktionen.',
-    complexity: 'high',
-    estimatedTime: '3-6 Wochen',
-    type: 'fullstack_application',
-    category: 'software',
-    sections: [
-      // Standard sections first
-      ...createStandardSections(),
-      
-      // Create areas based on DEFAULT_AREAS
-      ...DEFAULT_AREAS.flatMap((defaultArea, index) => {
-        const uniqueId = `fullstack-area-${index}`;
-        
-        return createTemplateArea({
-          id: uniqueId,
-          name: defaultArea.area.name,
-          order: (index + 1) * 10 + STANDARD_SECTIONS.length,
-          children: [
-            {
-              name: `${defaultArea.area.name} - Hauptsektion`,
-              content: 'Detaillierte Informationen zu diesem Bereich...',
-              isRequired: true
-            },
-            {
-              name: `${defaultArea.area.name} - Details`,
-              content: 'Weitere Details zu diesem Bereich...',
-              isRequired: false
-            }
-          ]
-        });
-      })
-    ],
-    get areaCount() { 
-      return this.sections.filter(s => s.isArea).length;
-    },
-    get sectionCount() {
-      return this.sections.filter(s => !s.isArea && s.level > 1).length;
-    }
-  }
-];
-
-// Sample prompt engineering templates
-export const promptEngineeringTemplates: SoftwareTemplate[] = [
-  {
-    id: 'zero_shot_framework',
-    name: 'Zero-Shot Prompt Framework',
-    description: 'Strukturiertes Framework für Zero-Shot Prompting mit Role, Context, Task, Format und Parameters.',
-    complexity: 'low',
-    estimatedTime: '15-30 Minuten',
-    type: 'zero_shot_template',
-    category: 'prompt_engineering',
-    sections: [
-      ...createTemplateArea({
-        id: 'zero_shot_role',
-        name: 'Role Definition',
-        content: 'Definiere die Rolle und Expertise der KI',
-        order: 1,
-        children: [
-          {
-            name: 'Expert Role',
-            content: 'Du bist ein [spezifische Rolle] mit [Jahre] Jahren Erfahrung in [Bereich].',
-            isRequired: true
-          }
-        ]
-      })
-    ],
-    get areaCount() { 
-      return this.sections.filter(s => s.isArea).length;
-    },
-    get sectionCount() {
-      return this.sections.filter(s => !s.isArea && s.level > 1).length;
-    }
-  }
-];
-
-// Combine all templates
-export const allTemplates: SoftwareTemplate[] = [
-  ...softwareTemplates,
-  ...promptEngineeringTemplates
-];
-
-/**
- * Get a software template by its id
- */
-export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  return allTemplates.find(template => template.id === id);
-}
-
-/**
- * Get all available software templates
- */
-export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return allTemplates;
-}
-
-/**
- * Get software development templates
- */
-export function getSoftwareTemplates(templates?: SoftwareTemplate[]): SoftwareTemplate[] {
-  const templatesArray = templates || allTemplates;
-  return templatesArray.filter(template => template.category === 'software');
-}
-
-/**
- * Get prompt engineering templates
- */
-export function getPromptEngineeringTemplates(templates?: SoftwareTemplate[]): SoftwareTemplate[] {
-  const templatesArray = templates || allTemplates;
-  return templatesArray.filter(template => template.category === 'prompt_engineering');
-}
-
-/**
- * Convert a software template to prompt sections, ensuring no duplicates
- */
-export function convertTemplateToSections(template: SoftwareTemplate): PromptSection[] {
-  // Track used area IDs to prevent duplicates
-  const usedAreaIds = new Set<string>();
-  
-  return template.sections.map(section => {
-    let newId = crypto.randomUUID();
-    
-    // If this is an area, make sure we don't have duplicate IDs
-    if (section.isArea) {
-      // Create a map to track which area names we've seen
-      usedAreaIds.add(section.name);
-    }
-    
-    return {
-      ...section,
-      id: newId // Generate new IDs to avoid collisions
-    };
-  });
-}
-
-/**
- * Count the number of areas in a template
- */
-export function countAreasInTemplate(template: SoftwareTemplate): number {
-  return template.sections.filter(section => section.isArea).length;
-}
-
-/**
- * Count the number of sections (non-areas) in a template
- */
-export function countSectionsInTemplate(template: SoftwareTemplate): number {
-  return template.sections.filter(section => !section.isArea).length;
-}
-
-// Helper function for complex content
-function getComplexContent(sectionName: string): string {
-  const contentMap: Record<string, string> = {
-    'Projektname': 'Umfassende Enterprise Web-Anwendung',
-    'Beschreibung': 'Eine hochskalierbare, benutzerfreundliche Web-Anwendung mit modernen Technologien...',
-    'Zielsetzung und unveränderliche Regeln': 'Entwicklung einer robusten, wartbaren und erweiterbaren Lösung...'
-  };
-  return contentMap[sectionName] || '';
-}
-
-// Create software templates
-const createWebAppSimple = (): SoftwareTemplate => {
-  const sections: PromptSection[] = [];
-
-  // Add standard sections
-  STANDARD_SECTIONS.forEach((section: any, index: number) => {
-    sections.push({
-      ...section,
-      id: crypto.randomUUID(),
-      content: '',
-      order: index
-    });
-  });
-
-  // Add default areas and their sections
-  DEFAULT_AREAS.forEach(({ area, sections: areaSections }) => {
-    const areaId = crypto.randomUUID();
-    const areaOrder = 100 + sections.length;
-
-    // Add the area
-    sections.push({
-      ...area,
-      id: areaId,
-      content: '',
-      order: areaOrder
-    });
-
-    // Add child sections
-    areaSections.forEach((section: any) => {
-      sections.push({
-        ...section,
-        id: crypto.randomUUID(),
-        content: '',
-        parentId: areaId,
-        order: section.order || 1
-      });
-    });
-  });
-
-  return {
-    id: 'web_app_simple',
-    name: 'Einfache Web-Anwendung',
-    description: 'Ein grundlegender Software-Template für eine einfache Web-Anwendung mit React und modernen Entwicklungstools.',
-    complexity: 'low',
-    estimatedTime: '3-5 Tage',
-    type: 'web_app_simple',
-    category: 'software',
-    sections,
-    areaCount: DEFAULT_AREAS.length,
-    sectionCount: STANDARD_SECTIONS.length + DEFAULT_AREAS.reduce((acc, { sections: areaSections }) => acc + areaSections.length, 0),
-    tags: ['React', 'TypeScript', 'Web']
-  };
-};
-
-const createWebAppComplex = (): SoftwareTemplate => {
-  const sections: PromptSection[] = [];
-
-  // Add standard sections
-  STANDARD_SECTIONS.forEach((section: any, index: number) => {
-    sections.push({
-      ...section,
-      id: crypto.randomUUID(),
-      content: getComplexContent(section.name),
-      order: index
-    });
-  });
-
-  // Add enhanced areas for complex apps
-  const complexAreas = [
-    ...DEFAULT_AREAS,
-    {
-      area: {
-        name: 'State Management',
-        order: 500,
-        isRequired: false,
-        level: 1,
-        isArea: true
-      },
-      sections: [
-        {
-          name: 'Zustand-Architektur',
-          order: 1,
-          isRequired: false,
-          level: 2
-        },
-        {
-          name: 'Datenfluss',
-          order: 2,
-          isRequired: false,
-          level: 2
-        }
-      ]
-    }
-  ];
-
-  complexAreas.forEach(({ area, sections: areaSections }) => {
-    const areaId = crypto.randomUUID();
-
-    // Add the area
-    sections.push({
-      ...area,
-      id: areaId,
-      content: ''
-    });
-
-    // Add child sections
-    areaSections.forEach((section: any) => {
-      sections.push({
-        ...section,
-        id: crypto.randomUUID(),
-        content: '',
-        parentId: areaId
-      });
-    });
-  });
-
-  return {
-    id: 'web_app_complex',
-    name: 'Komplexe Web-Anwendung',
-    description: 'Ein umfassender Software-Template für komplexe Web-Anwendungen mit erweiterten Features.',
-    complexity: 'high',
-    estimatedTime: '2-4 Wochen',
-    type: 'web_app_complex',
-    category: 'software',
-    sections,
-    areaCount: 5,
-    sectionCount: sections.filter(s => !s.isArea).length,
-    tags: ['React', 'TypeScript', 'Complex', 'Enterprise']
-  };
-};
-
-const createMobileApp = (): SoftwareTemplate => {
-  const sections: PromptSection[] = [
-    {
-      id: crypto.randomUUID(),
-      name: 'Projektname',
-      content: 'Mobile App Entwicklung',
-      order: 1,
-      isRequired: true,
-      level: 1
-    },
-    {
-      id: crypto.randomUUID(),
-      name: 'Plattform-Spezifikationen',
-      content: 'iOS und Android Kompatibilität, React Native oder native Entwicklung',
-      order: 2,
-      isRequired: true,
-      level: 1
-    },
-    {
-      id: crypto.randomUUID(),
-      name: 'UI/UX Design für Mobile',
-      content: 'Touch-optimierte Benutzeroberfläche, responsive Design für verschiedene Bildschirmgrößen',
-      order: 3,
-      isRequired: true,
-      level: 1
-    },
-    {
-      id: crypto.randomUUID(),
-      name: 'Performance-Optimierung',
-      content: 'Batterieeffizienz, Ladezeiten, Offline-Funktionalität',
-      order: 4,
-      isRequired: true,
-      level: 1
-    }
-  ];
-
-  return {
-    id: 'mobile_app',
-    name: 'Mobile Anwendung',
-    description: 'Template für die Entwicklung mobiler Anwendungen mit plattformspezifischen Anforderungen.',
-    complexity: 'medium',
-    estimatedTime: '1-3 Wochen',
-    type: 'mobile_app',
-    category: 'software',
-    sections,
+    description,
+    complexity,
+    estimatedTime,
+    type: type as any,
+    category,
+    sections: promptSections,
     areaCount: 0,
-    sectionCount: sections.length,
-    tags: ['Mobile', 'React Native', 'iOS', 'Android']
+    sectionCount: promptSections.length,
+    tags
   };
 };
 
-export const getAvailableSoftwareTemplates = (): SoftwareTemplate[] => {
-  return [
-    createWebAppSimple(),
-    createWebAppComplex(),
-    createMobileApp()
-  ];
+// Export all software templates
+export const SOFTWARE_TEMPLATES: SoftwareTemplateType[] = [
+  createSoftwareTemplate(
+    'web_app_simple',
+    'Simple Web Application',
+    'Basic web application with essential features and clean design',
+    'web_app_simple',
+    'low',
+    '3-5 days',
+    simpleWebAppSections,
+    'software',
+    ['web', 'frontend', 'beginner']
+  ),
+  createSoftwareTemplate(
+    'web_app_complex',
+    'Complex Web Application',
+    'Advanced web application with full-stack architecture and modern frameworks',
+    'web_app_complex',
+    'high',
+    '3-6 weeks',
+    complexWebAppSections,
+    'software',
+    ['web', 'fullstack', 'advanced']
+  ),
+  createSoftwareTemplate(
+    'mobile_app',
+    'Mobile Application',
+    'Cross-platform mobile application with native features',
+    'mobile_app',
+    'medium',
+    '2-4 weeks',
+    mobileAppSections,
+    'software',
+    ['mobile', 'cross-platform', 'ios', 'android']
+  ),
+  createSoftwareTemplate(
+    'desktop_app',
+    'Desktop Application',
+    'Native desktop application for Windows, macOS, and Linux',
+    'desktop_app',
+    'medium',
+    '2-3 weeks',
+    desktopAppSections,
+    'software',
+    ['desktop', 'native', 'cross-platform']
+  ),
+  createSoftwareTemplate(
+    'api_service',
+    'API Service',
+    'RESTful API service with database integration and documentation',
+    'api_service',
+    'medium',
+    '1-2 weeks',
+    apiServiceSections,
+    'software',
+    ['api', 'backend', 'microservice']
+  ),
+  createSoftwareTemplate(
+    'fullstack_application',
+    'Fullstack Application',
+    'Complete application with frontend, backend, and database components',
+    'fullstack_application',
+    'high',
+    '4-8 weeks',
+    fullstackAppSections,
+    'software',
+    ['fullstack', 'web', 'backend', 'frontend']
+  ),
+  createSoftwareTemplate(
+    'enterprise_system',
+    'Enterprise System',
+    'Large-scale enterprise system with security, compliance, and scalability',
+    'enterprise_system',
+    'enterprise',
+    '3-6 months',
+    enterpriseSystemSections,
+    'software',
+    ['enterprise', 'scalability', 'security', 'compliance']
+  ),
+  createSoftwareTemplate(
+    'microservice_architecture',
+    'Microservice Architecture',
+    'Distributed microservices system with containerization and orchestration',
+    'microservice_architecture',
+    'enterprise',
+    '2-4 months',
+    microserviceArchSections,
+    'software',
+    ['microservices', 'distributed', 'containers', 'kubernetes']
+  ),
+  createSoftwareTemplate(
+    'zero_shot_template',
+    'Zero-Shot Prompt',
+    'Template for creating effective zero-shot prompts without examples',
+    'zero_shot_template',
+    'low',
+    '30 minutes',
+    zeroShotSections,
+    'prompt_engineering',
+    ['prompt-engineering', 'zero-shot', 'ai']
+  ),
+  createSoftwareTemplate(
+    'roses_framework',
+    'ROSES Framework',
+    'Structured prompt template using Role, Objective, Scenario, Expected Solution, Sense Check',
+    'roses_framework',
+    'medium',
+    '45 minutes',
+    rosesFrameworkSections,
+    'prompt_engineering',
+    ['prompt-engineering', 'framework', 'structured']
+  ),
+  createSoftwareTemplate(
+    'chain_of_thought',
+    'Chain of Thought',
+    'Template for step-by-step reasoning and problem-solving prompts',
+    'chain_of_thought',
+    'medium',
+    '1 hour',
+    chainOfThoughtSections,
+    'prompt_engineering',
+    ['prompt-engineering', 'reasoning', 'step-by-step']
+  ),
+  createSoftwareTemplate(
+    'prompt_framework',
+    'General Prompt Framework',
+    'Flexible template for creating well-structured prompts',
+    'prompt_framework',
+    'low',
+    '30 minutes',
+    promptFrameworkSections,
+    'prompt_engineering',
+    ['prompt-engineering', 'general', 'framework']
+  ),
+];
+
+// Helper functions for filtering templates
+export const getSoftwareTemplates = (templates: SoftwareTemplateType[]) => 
+  templates.filter(t => t.category === 'software');
+
+export const getPromptEngineeringTemplates = (templates: SoftwareTemplateType[]) => 
+  templates.filter(t => t.category === 'prompt_engineering');
+
+export const getTemplatesByComplexity = (templates: SoftwareTemplateType[], complexity: string) =>
+  templates.filter(t => t.complexity === complexity);
+
+export const getTemplatesByTag = (templates: SoftwareTemplateType[], tag: string) =>
+  templates.filter(t => t.tags?.includes(tag));
+
+// Convert template to sections utility
+export const convertTemplateToSections = (template: SoftwareTemplateType) => {
+  return template.sections.map(s => ({
+    ...s,
+    level: s.level ?? 1,
+    parentId: s.parentId || undefined,
+    isArea: s.isArea ?? false,
+  }));
 };
 
-export const getSoftwareTemplateById = (id: string): SoftwareTemplate | null => {
-  const templates = getAvailableSoftwareTemplates();
-  return templates.find(template => template.id === id) || null;
+// Count areas and sections in template
+export const countAreasInTemplate = (template: SoftwareTemplateType) => {
+  return template.sections.filter(s => s.isArea).length;
+};
+
+export const countSectionsInTemplate = (template: SoftwareTemplateType) => {
+  return template.sections.filter(s => !s.isArea).length;
+};
+
+// Get templates by category
+export const getTemplatesByCategory = (templates: SoftwareTemplateType[], category: 'software' | 'prompt_engineering') => {
+  return templates.filter(t => t.category === category);
 };

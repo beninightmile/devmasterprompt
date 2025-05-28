@@ -62,31 +62,20 @@ export const usePromptStore = create<PromptState>()(
       lastSaveTime: null,
       ideas: [],
       
-      // Spread the actions
+      // Spread all actions from createPromptActions
       ...createPromptActions(set, get),
       
-      updateSection: (id, updates) => set(state => ({
-        sections: state.sections.map(section => 
-          section.id === id ? { ...section, ...updates } : section
-        ),
-      })),
-      
-      reorderSections: (orderedIds) => set(state => {
-        const orderedSections = orderedIds
-          .map((id, idx) => {
-            const section = state.sections.find(s => s.id === id);
-            return section ? { ...section, order: idx * 10 } : null;
-          })
-          .filter(Boolean) as PromptSection[];
-        
-        // Keep sections that weren't in the orderedIds
-        const unorderedSections = state.sections.filter(
-          section => !orderedIds.includes(section.id)
-        );
-        
-        return { sections: [...orderedSections, ...unorderedSections] };
-      }),
-      
+      // Implementation of moveSectionToArea
+      moveSectionToArea: (sectionId: string, targetAreaId?: string) => {
+        set(state => ({
+          sections: state.sections.map(section => 
+            section.id === sectionId 
+              ? { ...section, parentId: targetAreaId }
+              : section
+          ),
+        }));
+      },
+
       setActiveSection: (id) => set({ activeSectionId: id }),
       
       addInspirationItem: (item) => set(state => ({

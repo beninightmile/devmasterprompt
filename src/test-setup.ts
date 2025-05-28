@@ -1,21 +1,16 @@
 
 import '@testing-library/jest-dom';
-import { expect, vi, beforeAll } from 'vitest';
 
-// Mock navigator.clipboard
-Object.assign(navigator, {
-  clipboard: {
-    writeText: vi.fn().mockResolvedValue(undefined),
-    readText: vi.fn().mockResolvedValue(''),
+// Mock crypto.randomUUID globally
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: () => 'mocked-uuid-for-tests' as `${string}-${string}-${string}-${string}-${string}`,
   },
 });
 
-// Mock crypto.randomUUID
-Object.assign(global.crypto, {
-  randomUUID: vi.fn().mockReturnValue('mocked-uuid-for-tests'),
-});
-
-// Set up vitest globals
-beforeAll(() => {
-  // Additional setup can go here
+// Mock clipboard API
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: vi.fn(() => Promise.resolve()),
+  },
 });
