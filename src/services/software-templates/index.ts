@@ -1,6 +1,6 @@
 
 import { SoftwareTemplate, SoftwareTemplateType } from './types';
-import { allTemplates } from './template-data';
+import { getAvailableSoftwareTemplates } from '../template-service';
 import { 
   convertTemplateToSections, 
   countAreasInTemplate, 
@@ -27,20 +27,22 @@ export {
  * Get a software template by its id
  */
 export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  return allTemplates.find(template => template.id === id);
+  const allTemplates = getAvailableSoftwareTemplates();
+  return allTemplates.find((template: SoftwareTemplate) => template.id === id);
 }
 
 /**
  * Get all available software templates
  */
 export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return allTemplates;
+  return getAvailableSoftwareTemplates();
 }
 
 /**
  * Get all software development templates
  */
 export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
+  const allTemplates = getAvailableSoftwareTemplates();
   return getSoftwareTemplates(allTemplates);
 }
 
@@ -48,5 +50,6 @@ export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
  * Get all prompt engineering templates
  */
 export function getAllPromptEngineeringTemplates(): SoftwareTemplate[] {
+  const allTemplates = getAvailableSoftwareTemplates();
   return getPromptEngineeringTemplates(allTemplates);
 }

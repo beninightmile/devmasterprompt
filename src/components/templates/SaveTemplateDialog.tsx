@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,134 +15,112 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { usePromptStore } from '@/store/promptStore';
 import { autoSaveTemplate } from '@/services/template-service';
-import { useToast } from '@/hooks/use-toast';
 
 interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: (name: string, description: string, tags: string[]) => void;
 }
 
 const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({
   open,
   onOpenChange,
+  onSave,
 }) => {
-  const { sections, templateName, setTemplateName } = usePromptStore();
-  const { toast } = useToast();
-  
-  const [name, setName] = useState(templateName);
+  const { sections } = usePromptStore();
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+  const [newTag, setNewTag] = useState('');
+
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag('');
     }
   };
-  
-  const handleRemoveTag = (tagToRemove: string) => {
+
+  const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   const handleSave = () => {
-    if (!name.trim()) {
-      toast({
-        title: "Template name required",
-        description: "Please provide a name for your template.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const savedId = autoSaveTemplate();
-      if (savedId) {
-        setTemplateName(name.trim());
-        
-        toast({
-          title: "Template saved",
-          description: `"${name}" has been saved successfully.`,
-        });
-        
-        onOpenChange(false);
-      }
-    } catch (error) {
-      toast({
-        title: "Failed to save template",
-        description: "An error occurred while saving the template.",
-        variant: "destructive",
-      });
+    if (name.trim()) {
+      onSave(name.trim(), description.trim(), tags);
+      setName('');
+      setDescription('');
+      setTags([]);
+      onOpenChange(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Save Master Prompt as Template</DialogTitle>
+          <DialogTitle>Save Template</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              className="col-span-3" 
-            />
-          </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="description" className="text-right mt-2">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
+        
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="template-name">Template Name</Label>
+            <Input
+              id="template-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter template name..."
             />
           </div>
           
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tags" className="text-right">
-              Tags
-            </Label>
-            <div className="col-span-3">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="text-xs flex items-center gap-1">
-                    {tag}
-                    <button onClick={() => handleRemoveTag(tag)}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  placeholder="Add a tag"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                />
-                <Button type="button" size="sm" onClick={handleAddTag}>
-                  Add
-                </Button>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="template-description">Description</Label>
+            <Textarea
+              id="template-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your template..."
+              rows={3}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => removeTag(tag)}
+                  />
+                </Badge>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Add a tag..."
+                onKeyPress={(e) => e.key === 'Enter' && addTag()}
+              />
+              <Button type="button" onClick={addTag} variant="outline">
+                Add
+              </Button>
             </div>
           </div>
+          
+          <div className="text-sm text-muted-foreground">
+            This template will include {sections.length} sections.
+          </div>
         </div>
+
         <DialogFooter>
-          <Button onClick={handleSave}>Save template</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!name.trim()}>
+            Save Template
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

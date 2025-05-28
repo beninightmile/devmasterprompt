@@ -1,7 +1,8 @@
+
 import { useTemplateStore } from '@/store/templateStore';
 import { usePromptStore } from '@/store/promptStore';
 import { PromptTemplate } from '@/types/prompt';
-import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser';
+import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser/constants';
 import { PromptSection } from '@/types/prompt';
 
 export const saveCurrentPromptAsTemplate = (
@@ -30,9 +31,37 @@ export const saveCurrentPromptAsTemplate = (
   }
 };
 
-export const loadTemplateIntoPrompt = (templateId: string): boolean => {
-  const { clearAll } = usePromptStore.getState();
+export const autoSaveTemplate = (): string | null => {
+  const { sections, templateName } = usePromptStore.getState();
   
+  if (!templateName.trim() || sections.length === 0) {
+    return null;
+  }
+  
+  const { addTemplate, updateTemplate, templates } = useTemplateStore.getState();
+  const totalTokens = sections.reduce((acc, section) => acc + section.content.length, 0);
+  
+  const template: Omit<PromptTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
+    name: templateName,
+    description: '',
+    sections,
+    tags: [],
+    totalTokens,
+  };
+  
+  const existingTemplate = templates.find(t => t.name === templateName);
+  
+  if (existingTemplate) {
+    updateTemplate(existingTemplate.id, template);
+    return existingTemplate.id;
+  } else {
+    const newTemplate = addTemplate(template);
+    return newTemplate.id;
+  }
+};
+
+export const loadTemplateIntoPrompt = (templateId: string): boolean => {
+  // Implementation needed
   return true;
 };
 
@@ -101,7 +130,7 @@ const createWebAppSimple = (): SoftwareTemplate => {
     category: 'software',
     sections,
     areaCount: DEFAULT_AREAS.length,
-    sectionCount: STANDARD_SECTIONS.length + DEFAULT_AREAS.reduce((acc, { sections: areaSections }) => acc + areaSections.length, 0),
+    sectionCount: STANDARD_SECTIONS.length + DEFAULT_AREAS.reduce((acc: number, { sections: areaSections }) => acc + areaSections.length, 0),
     tags: ['React', 'TypeScript', 'Web']
   };
 };
@@ -250,9 +279,4 @@ export const getAvailableSoftwareTemplates = (): SoftwareTemplate[] => {
     createWebAppComplex(),
     createMobileApp()
   ];
-};
-
-export const getSoftwareTemplateById = (id: string): SoftwareTemplate | null => {
-  const templates = getAvailableSoftwareTemplates();
-  return templates.find(template => template.id === id) || null;
 };

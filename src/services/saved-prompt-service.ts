@@ -40,6 +40,11 @@ export const saveAsTemplate = (
   return template;
 };
 
+export const loadSavedPrompt = (promptId: string) => {
+  console.log('Loading saved prompt:', promptId);
+  return null;
+};
+
 export const convertToPromptSections = (rawSections: any[]): PromptSection[] => {
   return rawSections.map((section, index) => ({
     id: section.id || crypto.randomUUID(),

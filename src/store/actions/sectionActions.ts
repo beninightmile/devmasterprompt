@@ -1,11 +1,15 @@
 
 import { StoreApi } from 'zustand';
-import { PromptStoreState } from '../promptStore';
 import { PromptSection } from '@/types/prompt';
+
+export interface PromptStoreState {
+  sections: PromptSection[];
+  activeSectionId: string | null;
+}
 
 export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => ({
   addSection: (section: Omit<PromptSection, 'order'>) => {
-    set((state) => {
+    set((state: PromptStoreState) => {
       const newSection: PromptSection = {
         ...section,
         order: state.sections.length,
@@ -20,24 +24,24 @@ export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => (
   },
 
   updateSection: (id: string, updates: Partial<PromptSection>) => {
-    set((state) => ({
-      sections: state.sections.map(section =>
+    set((state: PromptStoreState) => ({
+      sections: state.sections.map((section: PromptSection) =>
         section.id === id ? { ...section, ...updates } : section
       ),
     }));
   },
 
   removeSection: (id: string) => {
-    set((state) => ({
-      sections: state.sections.filter(section => section.id !== id),
+    set((state: PromptStoreState) => ({
+      sections: state.sections.filter((section: PromptSection) => section.id !== id),
       activeSectionId: state.activeSectionId === id ? null : state.activeSectionId,
     }));
   },
 
   reorderSections: (sectionIds: string[]) => {
-    set((state) => {
+    set((state: PromptStoreState) => {
       const reorderedSections = sectionIds.map((id, index) => {
-        const section = state.sections.find(s => s.id === id);
+        const section = state.sections.find((s: PromptSection) => s.id === id);
         return section ? { ...section, order: index } : null;
       }).filter((section): section is PromptSection => section !== null);
 
@@ -47,3 +51,5 @@ export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => (
     });
   },
 });
+
+export const createSectionActions = sectionActions;
