@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -66,8 +67,13 @@ const UploadContentDialog: React.FC<UploadContentDialogProps> = ({
   const processText = (text: string) => {
     try {
       const sections = parseTextIntoSections(text);
-      setDetectedSections(sections);
-      setEditableSections([...sections]);
+      const detectedSections = sections.map(section => ({
+        name: section.name,
+        content: section.content
+      }));
+      
+      setDetectedSections(detectedSections);
+      setEditableSections([...detectedSections]);
       setIsProcessing(false);
       
       // Show warning if only one section was detected from a large text
@@ -101,9 +107,18 @@ const UploadContentDialog: React.FC<UploadContentDialogProps> = ({
   };
   
   const handleImport = () => {
-    // Match with default sections and generate proper section objects
-    const mappedSections = matchWithDefaultSections(editableSections);
-    onImportSections(mappedSections);
+    // Convert DetectedSection[] to PromptSection[]
+    const promptSections: PromptSection[] = editableSections.map((section, index) => ({
+      id: crypto.randomUUID(),
+      name: section.name,
+      content: section.content,
+      order: index,
+      isRequired: false,
+      level: 1,
+      isArea: false
+    }));
+    
+    onImportSections(promptSections);
     onOpenChange(false);
     
     // Reset state for next time
@@ -177,6 +192,7 @@ const UploadContentDialog: React.FC<UploadContentDialogProps> = ({
         
         {detectedSections.length === 0 ? (
           <FileUploadSection
+            onTextParsed={processText}
             error={error}
             isProcessing={isProcessing}
             onFileChange={handleFileChange}

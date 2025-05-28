@@ -1,6 +1,5 @@
 
 import { PromptSection } from '@/types/prompt';
-import { STANDARD_SECTIONS, DEFAULT_AREAS } from './prompt-parser/constants';
 
 // Create a simple web app template
 export const createSimpleWebAppTemplate = (): PromptSection[] => {

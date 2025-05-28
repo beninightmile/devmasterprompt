@@ -1,6 +1,5 @@
 
 import { SoftwareTemplate, SoftwareTemplateType } from './types';
-import { getAvailableSoftwareTemplates } from '../template-service';
 import { 
   convertTemplateToSections, 
   countAreasInTemplate, 

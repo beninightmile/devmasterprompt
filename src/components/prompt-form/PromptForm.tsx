@@ -118,18 +118,9 @@ const PromptForm: React.FC<PromptFormProps> = ({ onPreviewToggle }) => {
         onSaveTemplateDialogChange={setSaveTemplateDialogOpen}
         onUploadDialogChange={setUploadDialogOpen}
         onSoftwareTemplateDialogChange={setPromptTemplateDialogOpen}
-        onAddCustomSection={(name, areaId) => {
-          handleAddCustomSection(name, areaId);
-          setNewSectionDialogOpen(false);
-        }}
-        onAddExistingSection={(template) => {
-          handleAddExistingSection(template);
-          setNewSectionDialogOpen(false);
-        }}
-        onImportSections={(sections) => {
-          handleImportSections(sections);
-          setUploadDialogOpen(false);
-        }}
+        onAddCustomSection={handleAddCustomSection}
+        onAddExistingSection={handleAddExistingSection}
+        onImportSections={handleImportSections}
         onApplySoftwareTemplate={handleApplySoftwareTemplate}
       />
     </div>
