@@ -6,6 +6,7 @@ import FileUploadSection from './FileUploadSection';
 import SectionEditor from './SectionEditor';
 import { parseTextIntoSections } from '@/services/prompt-parser/text-parser';
 import { PromptSection } from '@/types/prompt';
+import { DetectedSection } from '@/services/prompt-parser/types';
 
 interface UploadPromptDialogProps {
   open: boolean;
@@ -23,7 +24,18 @@ const UploadPromptDialog: React.FC<UploadPromptDialogProps> = ({
 
   const handleTextParsed = useCallback((text: string) => {
     try {
-      const sections = parseTextIntoSections(text);
+      const detectedSections: DetectedSection[] = parseTextIntoSections(text);
+      // Convert DetectedSection to PromptSection
+      const sections: PromptSection[] = detectedSections.map((section, index) => ({
+        id: section.id || crypto.randomUUID(),
+        name: section.name,
+        content: section.content,
+        order: section.order ?? index,
+        isRequired: section.isRequired ?? false,
+        level: section.level ?? 1,
+        parentId: section.parentId,
+        isArea: section.isArea ?? false,
+      }));
       setParsedSections(sections);
       setActiveTab('edit');
     } catch (error) {

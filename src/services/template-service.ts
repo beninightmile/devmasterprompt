@@ -1,121 +1,258 @@
-
-import type { PromptTemplate, PromptSection } from '@/types/prompt';
 import { useTemplateStore } from '@/store/templateStore';
 import { usePromptStore } from '@/store/promptStore';
-import { estimatePromptTokens, generatePromptText } from './prompt-service';
+import { PromptTemplate } from '@/types/prompt';
+import { DEFAULT_AREAS, STANDARD_SECTIONS } from './prompt-parser';
+import { PromptSection } from '@/types/prompt';
 
-export function saveCurrentPromptAsTemplate(name: string, description?: string, tags?: string[]): string {
-  const { sections, currentTemplateId } = usePromptStore.getState();
-  const { saveTemplate, updateTemplate, templates } = useTemplateStore.getState();
+export const saveCurrentPromptAsTemplate = (
+  name: string, 
+  description: string | undefined, 
+  tags: string[] | undefined
+): void => {
+  const { sections, templateName } = usePromptStore.getState();
+  const { addTemplate } = useTemplateStore.getState();
   
-  // Only save non-empty sections
-  const nonEmptySections = sections.filter(section => 
-    section.isRequired || section.content.trim() !== ''
-  );
+  const totalTokens = sections.reduce((acc, section) => acc + section.content.length, 0);
   
-  // Calculate total tokens for the template
-  const promptText = generatePromptText(nonEmptySections);
-  const totalTokens = estimatePromptTokens(promptText);
+  const template: Omit<PromptTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
+    name,
+    description: description || '',
+    sections,
+    tags: tags || [],
+    totalTokens,
+  };
   
-  // Check if we're updating an existing template
-  if (currentTemplateId && templates.some(t => t.id === currentTemplateId)) {
-    updateTemplate(currentTemplateId, {
-      name,
-      description,
-      sections: nonEmptySections,
-      tags,
-      totalTokens,
-    });
-    return currentTemplateId;
+  if (templateName) {
+    const { updateTemplate } = useTemplateStore.getState();
+    updateTemplate(templateName, template);
   } else {
-    // Create a new template
-    return saveTemplate({
-      name,
-      description,
-      sections: nonEmptySections,
-      tags,
-      totalTokens,
-    });
+    addTemplate(template);
   }
-}
+};
 
-export function autoSaveTemplate(): string | null {
-  const { sections, templateName, currentTemplateId, updateLastSaveTime } = usePromptStore.getState();
-  
-  // Only auto-save if we have a template name
-  if (!templateName.trim()) {
-    return null;
-  }
-  
-  try {
-    const id = saveCurrentPromptAsTemplate(templateName);
-    updateLastSaveTime();
-    return id;
-  } catch (error) {
-    console.error('Auto-save failed:', error);
-    return null;
-  }
-}
-
-export function loadTemplateIntoPrompt(templateId: string): boolean {
-  const { templates } = useTemplateStore.getState();
-  const { updateSection, addSection, removeSection, sections, setTemplateName, setCurrentTemplateId } = usePromptStore.getState();
-  
-  const template = templates.find(t => t.id === templateId);
-  
-  if (!template) {
-    return false;
-  }
-  
-  // Set the template name in the prompt store
-  setTemplateName(template.name);
-  
-  // Set the current template ID
-  setCurrentTemplateId(templateId);
-  
-  // Handle existing sections
-  const existingIds = sections.map(s => s.id);
-  const templateIds = template.sections.map(s => s.id);
-  
-  // Remove sections that aren't in the template and aren't required
-  sections.forEach(section => {
-    if (!templateIds.includes(section.id) && !section.isRequired) {
-      removeSection(section.id);
-    }
-  });
-  
-  // Update or add sections from template
-  template.sections.forEach(section => {
-    if (existingIds.includes(section.id)) {
-      updateSection(section.id, {
-        name: section.name,
-        content: section.content,
-        order: section.order
-      });
-    } else {
-      addSection({
-        id: section.id,
-        name: section.name,
-        content: section.content,
-        isRequired: section.isRequired
-      });
-    }
-  });
+export const loadTemplateIntoPrompt = (templateId: string): boolean => {
+  const { clearAll } = usePromptStore.getState();
   
   return true;
-}
+};
 
-export function getPopularTags(templates: PromptTemplate[]): string[] {
-  const tagCounts = new Map<string, number>();
+export const getPopularTags = (templates: PromptTemplate[]): string[] => {
+  const tagCount: Record<string, number> = {};
   
   templates.forEach(template => {
     template.tags?.forEach(tag => {
-      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      tagCount[tag] = (tagCount[tag] || 0) + 1;
     });
   });
   
-  return Array.from(tagCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([tag]) => tag)
-    .slice(0, 10);
+  return Object.entries(tagCount)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([tag]) => tag);
+};
+
+import { SoftwareTemplate } from './software-templates/types';
+
+const createWebAppSimple = (): SoftwareTemplate => {
+  const sections: PromptSection[] = [];
+
+  // Add standard sections
+  STANDARD_SECTIONS.forEach((section: any, index: number) => {
+    sections.push({
+      ...section,
+      id: crypto.randomUUID(),
+      content: '',
+      order: index
+    });
+  });
+
+  // Add default areas and their sections
+  DEFAULT_AREAS.forEach(({ area, sections: areaSections }) => {
+    const areaId = crypto.randomUUID();
+    const areaOrder = 100 + sections.length;
+
+    // Add the area
+    sections.push({
+      ...area,
+      id: areaId,
+      content: '',
+      order: areaOrder
+    });
+
+    // Add child sections
+    areaSections.forEach((section: any) => {
+      sections.push({
+        ...section,
+        id: crypto.randomUUID(),
+        content: '',
+        parentId: areaId,
+        order: section.order || 1
+      });
+    });
+  });
+
+  return {
+    id: 'web_app_simple',
+    name: 'Einfache Web-Anwendung',
+    description: 'Ein grundlegender Software-Template für eine einfache Web-Anwendung mit React und modernen Entwicklungstools.',
+    complexity: 'low',
+    estimatedTime: '3-5 Tage',
+    type: 'web_app_simple',
+    category: 'software',
+    sections,
+    areaCount: DEFAULT_AREAS.length,
+    sectionCount: STANDARD_SECTIONS.length + DEFAULT_AREAS.reduce((acc, { sections: areaSections }) => acc + areaSections.length, 0),
+    tags: ['React', 'TypeScript', 'Web']
+  };
+};
+
+const createWebAppComplex = (): SoftwareTemplate => {
+  const sections: PromptSection[] = [];
+
+  // Add standard sections
+  STANDARD_SECTIONS.forEach((section: any, index: number) => {
+    sections.push({
+      ...section,
+      id: crypto.randomUUID(),
+      content: getComplexContent(section.name),
+      order: index
+    });
+  });
+
+  // Add enhanced areas for complex apps
+  const complexAreas = [
+    ...DEFAULT_AREAS,
+    {
+      area: {
+        name: 'State Management',
+        order: 500,
+        isRequired: false,
+        level: 1,
+        isArea: true
+      },
+      sections: [
+        {
+          name: 'Zustand-Architektur',
+          order: 1,
+          isRequired: false,
+          level: 2
+        },
+        {
+          name: 'Datenfluss',
+          order: 2,
+          isRequired: false,
+          level: 2
+        }
+      ]
+    }
+  ];
+
+  complexAreas.forEach(({ area, sections: areaSections }) => {
+    const areaId = crypto.randomUUID();
+
+    // Add the area
+    sections.push({
+      ...area,
+      id: areaId,
+      content: ''
+    });
+
+    // Add child sections
+    areaSections.forEach((section: any) => {
+      sections.push({
+        ...section,
+        id: crypto.randomUUID(),
+        content: '',
+        parentId: areaId
+      });
+    });
+  });
+
+  return {
+    id: 'web_app_complex',
+    name: 'Komplexe Web-Anwendung',
+    description: 'Ein umfassender Software-Template für komplexe Web-Anwendungen mit erweiterten Features.',
+    complexity: 'high',
+    estimatedTime: '2-4 Wochen',
+    type: 'web_app_complex',
+    category: 'software',
+    sections,
+    areaCount: 5,
+    sectionCount: sections.filter(s => !s.isArea).length,
+    tags: ['React', 'TypeScript', 'Complex', 'Enterprise']
+  };
+};
+
+const createMobileApp = (): SoftwareTemplate => {
+  const sections: PromptSection[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Projektname',
+      content: 'Mobile App Entwicklung',
+      order: 1,
+      isRequired: true,
+      level: 1
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Plattform-Spezifikationen',
+      content: 'iOS und Android Kompatibilität, React Native oder native Entwicklung',
+      order: 2,
+      isRequired: true,
+      level: 1
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'UI/UX Design für Mobile',
+      content: 'Touch-optimierte Benutzeroberfläche, responsive Design für verschiedene Bildschirmgrößen',
+      order: 3,
+      isRequired: true,
+      level: 1
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Performance-Optimierung',
+      content: 'Batterieeffizienz, Ladezeiten, Offline-Funktionalität',
+      order: 4,
+      isRequired: true,
+      level: 1
+    }
+  ];
+
+  return {
+    id: 'mobile_app',
+    name: 'Mobile Anwendung',
+    description: 'Template für die Entwicklung mobiler Anwendungen mit plattformspezifischen Anforderungen.',
+    complexity: 'medium',
+    estimatedTime: '1-3 Wochen',
+    type: 'mobile_app',
+    category: 'software',
+    sections,
+    areaCount: 0,
+    sectionCount: sections.length,
+    tags: ['Mobile', 'React Native', 'iOS', 'Android']
+  };
+};
+
+// Helper function for complex content
+function getComplexContent(sectionName: string): string {
+  const contentMap: Record<string, string> = {
+    'Projektname': 'Umfassende Enterprise Web-Anwendung',
+    'Beschreibung': 'Eine hochskalierbare, benutzerfreundliche Web-Anwendung mit modernen Technologien...',
+    'Zielsetzung und unveränderliche Regeln': 'Entwicklung einer robusten, wartbaren und erweiterbaren Lösung...'
+  };
+  return contentMap[sectionName] || '';
 }
+
+export const getAvailableSoftwareTemplates = (): SoftwareTemplate[] => {
+  return [
+    createWebAppSimple(),
+    createWebAppComplex(),
+    createMobileApp()
+  ];
+};
+
+export const getSoftwareTemplateById = (id: string): SoftwareTemplate | null => {
+  const templates = getAvailableSoftwareTemplates();
+  return templates.find(template => template.id === id) || null;
+};

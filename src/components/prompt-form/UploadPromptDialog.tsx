@@ -13,8 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle } from 'lucide-react';
-import { parseTextIntoSections, matchWithDefaultSections } from '@/services/prompt-parser-service';
+import { AlertCircle } from 'lucide-react';
+import { parseTextIntoSections, matchWithDefaultSections } from '@/services/prompt-parser';
 import { PromptSection } from '@/types/prompt';
 
 interface UploadPromptDialogProps {

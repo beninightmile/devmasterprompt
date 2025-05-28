@@ -28,4 +28,5 @@ export interface SoftwareTemplate {
   sections: PromptSection[];
   areaCount: number; // Number of areas in the template
   sectionCount: number; // Number of non-area sections in the template
+  tags?: string[]; // Added missing tags property
 }

@@ -10,6 +10,7 @@ import SaveTemplateDialog from '@/components/templates/SaveTemplateDialog';
 import TemplateFilters from '@/components/templates/TemplateFilters';
 import DeleteTemplateDialog from '@/components/templates/DeleteTemplateDialog';
 import NoTemplatesFound from '@/components/templates/NoTemplatesFound';
+import { PromptTemplate } from '@/types/prompt';
 
 const TemplatesPage: React.FC = () => {
   const { templates, deleteTemplate } = useTemplateStore();
@@ -52,9 +53,9 @@ const TemplatesPage: React.FC = () => {
     }
   };
   
-  const handleLoadTemplate = (templateId: string) => {
+  const handleLoadTemplate = (template: PromptTemplate) => {
     try {
-      const success = loadTemplateIntoPrompt(templateId);
+      const success = loadTemplateIntoPrompt(template.id);
       if (success) {
         // Set preview mode to false to ensure user sees the editor
         setPreviewMode(false);

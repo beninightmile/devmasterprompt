@@ -14,6 +14,7 @@ export interface DetectedSection {
   order?: number;
   parentId?: string | undefined;
   isArea?: boolean;
+  isRequired?: boolean; // Added to match PromptSection
   blockPrefix?: string; // For prefixed sections like @@Core_1:
   numberPrefix?: string; // For numbered sections like "1." or "1.1"
 }
