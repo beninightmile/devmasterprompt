@@ -50,6 +50,7 @@ const initialSections: PromptSection[] = [];
 
 export const usePromptStore = create<PromptState>()(
   persist(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (set, get) => ({
       sections: initialSections,
       activeSectionId: initialSections.length > 0 ? initialSections[0].id : null,
@@ -62,8 +63,8 @@ export const usePromptStore = create<PromptState>()(
       lastSaveTime: null,
       ideas: [],
       
-      // Spread all actions from createPromptActions - pass only set function
-      ...createPromptActions(set),
+      // Spread all actions from createPromptActions - pass both set and get
+      ...createPromptActions(set, get),
       
       // Implementation of moveSectionToArea
       moveSectionToArea: (sectionId: string, targetAreaId?: string) => {

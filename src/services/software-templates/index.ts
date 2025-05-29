@@ -18,7 +18,7 @@ const allTemplates: SoftwareTemplate[] = [
     id: 'web-app-basic',
     name: 'Basic Web Application',
     description: 'A template for basic web application development',
-    type: 'web_app_basic',
+    type: 'web_app_simple', // Korrigiert von 'web_app_basic' zu gültigem SoftwareTemplateType
     category: 'software',
     sections: webAppBasicSections,
     complexity: 'low',
