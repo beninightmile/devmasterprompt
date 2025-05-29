@@ -5,8 +5,8 @@ import {
   countAreasInTemplate, 
   countSectionsInTemplate,
   getTemplatesByCategory,
-  getSoftwareTemplates,
-  getPromptEngineeringTemplates
+  getSoftwareTemplates as getBaseSoftwareTemplates,
+  getPromptEngineeringTemplates as getBasePromptEngineeringTemplates
 } from './template-utils';
 
 // Re-export types
@@ -18,15 +18,15 @@ export {
   countAreasInTemplate, 
   countSectionsInTemplate,
   getTemplatesByCategory,
-  getSoftwareTemplates,
-  getPromptEngineeringTemplates
+  getSoftwareTemplates: getBaseSoftwareTemplates,
+  getPromptEngineeringTemplates: getBasePromptEngineeringTemplates
 };
 
 /**
  * Get a software template by its id
  */
 export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefined {
-  const allTemplates = getSoftwareTemplates();
+  const allTemplates = getBaseSoftwareTemplates();
   return allTemplates.find((template: SoftwareTemplate) => template.id === id);
 }
 
@@ -34,14 +34,14 @@ export function getSoftwareTemplateById(id: string): SoftwareTemplate | undefine
  * Get all available software templates
  */
 export function getAllSoftwareTemplates(): SoftwareTemplate[] {
-  return getSoftwareTemplates();
+  return getBaseSoftwareTemplates();
 }
 
 /**
  * Get all software development templates
  */
 export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
-  const allTemplates = getSoftwareTemplates();
+  const allTemplates = getBaseSoftwareTemplates();
   return getTemplatesByCategory(allTemplates, 'software');
 }
 
@@ -49,6 +49,6 @@ export function getAllSoftwareDevelopmentTemplates(): SoftwareTemplate[] {
  * Get all prompt engineering templates
  */
 export function getAllPromptEngineeringTemplates(): SoftwareTemplate[] {
-  const allTemplates = getSoftwareTemplates();
+  const allTemplates = getBaseSoftwareTemplates();
   return getTemplatesByCategory(allTemplates, 'prompt_engineering');
 }
