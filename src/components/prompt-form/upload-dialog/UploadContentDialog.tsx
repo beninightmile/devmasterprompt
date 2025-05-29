@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { parseTextIntoSections, matchWithDefaultSections } from '@/services/prompt-parser';
+import { parseTextIntoSections } from '@/services/prompt-parser';
 import { PromptSection } from '@/types/prompt';
 import FileUploadSection from './FileUploadSection';
 import SectionEditor from './SectionEditor';
