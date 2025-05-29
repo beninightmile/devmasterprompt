@@ -18,8 +18,8 @@ export {
   countAreasInTemplate, 
   countSectionsInTemplate,
   getTemplatesByCategory,
-  getSoftwareTemplates: getBaseSoftwareTemplates,
-  getPromptEngineeringTemplates: getBasePromptEngineeringTemplates
+  getBaseSoftwareTemplates as getSoftwareTemplates,
+  getBasePromptEngineeringTemplates as getPromptEngineeringTemplates
 };
 
 /**
