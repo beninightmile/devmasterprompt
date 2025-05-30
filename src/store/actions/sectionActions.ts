@@ -1,19 +1,24 @@
 
 import { StoreApi } from 'zustand';
 import { PromptSection } from '@/types/prompt';
+import { getNextOrder } from '../utils/sectionUtils';
 
 export interface PromptStoreState {
   sections: PromptSection[];
   activeSectionId: string | null;
 }
 
-export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => ({
+export const sectionActions = (set: StoreApi<PromptStoreState>['setState'], get: () => PromptStoreState) => ({
   addSection: (section: Omit<PromptSection, 'order'>, areaId?: string) => {
     set((state: PromptStoreState) => {
+      const currentState = get();
+      const level = section.level ?? (areaId ? 2 : 1);
+      const nextOrder = getNextOrder(currentState.sections, level, areaId);
+      
       const newSection: PromptSection = {
         ...section,
-        order: state.sections.length,
-        level: section.level ?? 1,
+        order: nextOrder,
+        level: level,
         parentId: areaId || section.parentId || undefined,
         isArea: section.isArea ?? false,
       };
@@ -25,10 +30,14 @@ export const sectionActions = (set: StoreApi<PromptStoreState>['setState']) => (
 
   addArea: (area: Omit<PromptSection, 'order' | 'isArea'>) => {
     set((state: PromptStoreState) => {
+      const currentState = get();
+      const level = area.level ?? 1;
+      const nextOrder = getNextOrder(currentState.sections, level, area.parentId);
+      
       const newArea: PromptSection = {
         ...area,
-        order: state.sections.length,
-        level: area.level ?? 1,
+        order: nextOrder,
+        level: level,
         parentId: area.parentId || undefined,
         isArea: true,
       };
