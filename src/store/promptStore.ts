@@ -63,8 +63,8 @@ export const usePromptStore = create<PromptState>()(
       lastSaveTime: null,
       ideas: [],
       
-      // Spread all actions from createPromptActions - pass both set and get
-      ...createPromptActions(set, get),
+      // Spread all actions from createPromptActions - pass only set function
+      ...createPromptActions(set),
       
       // Implementation of moveSectionToArea
       moveSectionToArea: (sectionId: string, targetAreaId?: string) => {
