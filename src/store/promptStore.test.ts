@@ -27,6 +27,7 @@ describe('PromptStore', () => {
       content: 'This is a test section.',
       level: 1,
       isArea: false,
+      isRequired: false,
     };
 
     addSection(newSection);
@@ -48,6 +49,7 @@ describe('PromptStore', () => {
       name: 'Test Area',
       content: 'This is a test area.',
       level: 1,
+      isRequired: false,
     };
 
     addArea(newArea);
@@ -78,6 +80,7 @@ describe('PromptStore', () => {
       name: 'Parent Area',
       content: 'Parent content',
       level: 1,
+      isRequired: false,
     };
     
     addArea(parentArea);
@@ -89,6 +92,7 @@ describe('PromptStore', () => {
       content: 'Child content',
       level: 2,
       isArea: false,
+      isRequired: false,
     };
     
     addSection(childSection, 'parent-area');
@@ -111,6 +115,7 @@ describe('PromptStore', () => {
       content: 'Content 1',
       level: 1,
       isArea: false,
+      isRequired: false,
     });
     
     addSection({
@@ -119,6 +124,7 @@ describe('PromptStore', () => {
       content: 'Content 2',
       level: 1,
       isArea: false,
+      isRequired: false,
     });
 
     let { sections } = usePromptStore.getState();
